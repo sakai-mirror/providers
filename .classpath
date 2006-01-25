@@ -9,6 +9,7 @@
 	<classpathentry kind="src" path="/legacy-service"/>
 	<classpathentry kind="var" path="MAVEN_REPO/commons-logging/jars/commons-logging-1.0.4.jar"/>
 	<classpathentry kind="src" path="/util"/>
+	<classpathentry kind="src" path="/high-util" />
 	<classpathentry kind="var" path="MAVEN_REPO/openldap/jars/ldap-2005.03.29.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
