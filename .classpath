@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry kind="src" path="jldap/src/java"/>
+	<classpathentry kind="src" path="cm/cm-cm-provider/src/java"/>
 	<classpathentry kind="src" path="federating/src/java"/>
 	<classpathentry kind="src" path="cm/cm-authz-provider/src/java"/>
 	<classpathentry kind="src" path="imsent/src/java"/>
@@ -18,5 +19,6 @@
 	<classpathentry combineaccessrules="false" kind="src" path="/db-api"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/component-api"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/cm-api"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/site-manage-api"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
