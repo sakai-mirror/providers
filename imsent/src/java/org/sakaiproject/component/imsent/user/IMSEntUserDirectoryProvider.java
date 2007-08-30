@@ -260,22 +260,6 @@ public class IMSEntUserDirectoryProvider implements UserDirectoryProvider
 	} // SampleUserDirectoryProvider
 
 	/**
-	 * See if a user by this id exists.
-	 * 
-	 * @param userId
-	 *        The user id string.
-	 * @return true if a user by this id exists, false if not.
-	 */
-	public boolean userExists(String userId)
-	{
-		if (!isReady()) return false;
-		if (userId == null) return false;
-		System.out.println("userExists(" + userId + ")");
-		SakaiIMSUser rv = retrieveUser(userId, false);
-		return (rv != null);
-	} // userExists
-
-	/**
 	 * Copy the information from our internal structure into the Sakai User structure.
 	 * 
 	 * @param edit
@@ -372,34 +356,9 @@ public class IMSEntUserDirectoryProvider implements UserDirectoryProvider
 	} // authenticateUser
 
 	/**
-	 * Will this provider update user records on successfull authentication? If so, the UserDirectoryService will cause these updates to be stored.
-	 * 
-	 * @return true if the user record may be updated after successfull authentication, false if not.
-	 */
-	public boolean updateUserAfterAuthentication()
-	{
-		return false;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	public void destroyAuthentication()
-	{
-	}
-
-	/**
 	 * {@inheritDoc}
 	 */
 	public boolean authenticateWithProviderFirst(String id)
-	{
-		return false;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	public boolean createUserRecord(String id)
 	{
 		return false;
 	}
