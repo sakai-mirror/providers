@@ -110,9 +110,6 @@ public class IMSEntUserDirectoryProvider implements UserDirectoryProvider
 			{
 				M_log.warn(".init(): Not properly initialized.");
 			}
-
-			// Run our local unit tests
-			IMSEntProviderUnitTest.localUnitTests(this, null);
 		}
 		catch (Throwable t)
 		{

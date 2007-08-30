@@ -244,7 +244,8 @@ public class KerberosUserDirectoryProvider implements UserDirectoryProvider
 	 */
 	public boolean getUser(UserEdit edit)
 	{
-		if (!userExists(edit.getEid())) return false;
+		if (m_requirelocalaccount) return false;
+		if (!userKnownToKerberos(edit.getEid())) return false;
 
 		edit.setEmail(edit.getEid() + "@" + m_domain);
 		edit.setType("kerberos");
@@ -371,6 +372,24 @@ public class KerberosUserDirectoryProvider implements UserDirectoryProvider
 		}
 	} // authenticateUser
 
+	/**
+	 * {@inheritDoc}
+	 */
+	public void destroyAuthentication()
+	{
+
+	}
+
+	/**
+	 * Will this provider update user records on successful authentication? If so, the UserDirectoryService will cause these updates to be stored.
+	 * 
+	 * @return true if the user record may be updated after successful authentication, false if not.
+	 */
+	public boolean updateUserAfterAuthentication()
+	{
+		return false;
+	}
+
 	/**********************************************************************************************************************************************************************************************************************************************************
 	 * Kerberos stuff
 	 *********************************************************************************************************************************************************************************************************************************************************/
@@ -433,6 +452,71 @@ public class KerberosUserDirectoryProvider implements UserDirectoryProvider
 	} // authenticateKerberos
 
 	/**
+	 * Check if the user id is known to kerberos.
+	 * 
+	 * @param user
+	 *        The user id.
+	 * @return true if successful, false if not.
+	 */
+	private boolean userKnownToKerberos(String user)
+	{
+		// use a dummy password
+		String pw = "dummy";
+
+		// Obtain a LoginContext, needed for authentication.
+		// Tell it to use the LoginModule implementation specified
+		// in the JAAS login configuration file and to use
+		// use the specified CallbackHandler.
+		LoginContext lc = null;
+		try
+		{
+			SakaiCallbackHandler t = new SakaiCallbackHandler();
+			t.setId(user);
+			t.setPw(pw);
+			lc = new LoginContext(m_logincontext, t);
+		}
+		catch (LoginException le)
+		{
+			if (M_log.isDebugEnabled()) M_log.debug("useKnownToKerberos(): " + le.toString());
+			return false;
+		}
+		catch (SecurityException se)
+		{
+			if (M_log.isDebugEnabled()) M_log.debug("useKnownToKerberos(): " + se.toString());
+			return false;
+		}
+
+		try
+		{
+			// attempt authentication
+			lc.login();
+			lc.logout();
+
+			if (M_log.isDebugEnabled()) M_log.debug("useKnownToKerberos(" + user + "): Kerberos auth success");
+
+			return true;
+		}
+		catch (LoginException le)
+		{
+			String msg = le.getMessage();
+
+			// if this is the message, the user was good, the password was bad
+			if (msg.startsWith(m_knownusermsg))
+			{
+				if (M_log.isDebugEnabled()) M_log.debug("userKnownToKerberos(" + user + "): Kerberos user known (bad pw)");
+
+				return true;
+			}
+
+			// the other message is when the user is bad:
+			if (M_log.isDebugEnabled()) M_log.debug("userKnownToKerberos(" + user + "): Kerberos user unknown or invalid");
+
+			return false;
+		}
+
+	} // userKnownToKerberos
+
+	/**
 	 * Inner Class SakaiCallbackHandler Get the user id and password information for authentication purpose. This can be used by a JAAS application to instantiate a CallbackHandler.
 	 * 
 	 * @see javax.security.auth.callback
@@ -463,8 +547,6 @@ public class KerberosUserDirectoryProvider implements UserDirectoryProvider
 		 */
 		public void handle(Callback[] callbacks) throws java.io.IOException, UnsupportedCallbackException
 		{
-			ConfirmationCallback confirmation = null;
-
 			for (int i = 0; i < callbacks.length; i++)
 			{
 				if (callbacks[i] instanceof TextOutputCallback)
@@ -534,6 +616,14 @@ public class KerberosUserDirectoryProvider implements UserDirectoryProvider
 	 * {@inheritDoc}
 	 */
 	public boolean authenticateWithProviderFirst(String id)
+	{
+		return false;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public boolean createUserRecord(String id)
 	{
 		return false;
 	}

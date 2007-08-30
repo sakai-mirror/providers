@@ -160,6 +160,10 @@ public class OpenLdapDirectoryProvider implements UserDirectoryProvider
 		return returnVal;
 	}
 
+	public void destroyAuthentication()
+	{
+	}
+
 	public boolean findUserByEmail(UserEdit edit, String email)
 	{
 
@@ -198,12 +202,65 @@ public class OpenLdapDirectoryProvider implements UserDirectoryProvider
 		}
 	}
 
+	public boolean updateUserAfterAuthentication()
+	{
+		return false;
+	}
+
+	protected boolean userExists(String id)
+	{
+		env.put(Context.SECURITY_AUTHENTICATION, "simple");
+		env.put(Context.SECURITY_CREDENTIALS, "secret");
+
+		try
+		{
+			DirContext ctx = new InitialDirContext(env);
+
+			/*
+			 * Setup subtree scope to tell LDAP to recursively descend directory structure during searches.
+			 */
+			SearchControls searchControls = new SearchControls();
+			searchControls.setSearchScope(SearchControls.SUBTREE_SCOPE);
+
+			/*
+			 * Setup the directory entry attributes we want to search for. In this case it is the user's ID.
+			 */
+
+			String filter = "(&(objectclass=person)(uid=" + id + "))";
+
+			/* Execute the search, starting at the directory level of Users */
+
+			NamingEnumeration hits = ctx.search(getBasePath(), filter, searchControls);
+
+			/* All we need to know is if there were any hits at all. */
+
+			if (hits.hasMore())
+			{
+				hits.close();
+				ctx.close();
+				return true;
+			}
+			else
+			{
+				hits.close();
+				ctx.close();
+				return false;
+			}
+		}
+		catch (Exception e)
+		{
+			e.printStackTrace();
+			return false;
+		}
+	}
+
 	private boolean getUserInf(UserEdit edit, String filter)
 	{
 
 		String id = null;
 		String firstName = null;
 		String lastName = null;
+		String employeenumber = null;
 		String email = null;
 		try
 		{
@@ -306,6 +363,14 @@ public class OpenLdapDirectoryProvider implements UserDirectoryProvider
 	 * {@inheritDoc}
 	 */
 	public boolean authenticateWithProviderFirst(String id)
+	{
+		return false;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public boolean createUserRecord(String id)
 	{
 		return false;
 	}
