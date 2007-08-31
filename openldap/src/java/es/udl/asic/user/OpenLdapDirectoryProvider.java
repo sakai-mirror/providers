@@ -160,10 +160,6 @@ public class OpenLdapDirectoryProvider implements UserDirectoryProvider
 		return returnVal;
 	}
 
-	public void destroyAuthentication()
-	{
-	}
-
 	public boolean findUserByEmail(UserEdit edit, String email)
 	{
 
@@ -200,11 +196,6 @@ public class OpenLdapDirectoryProvider implements UserDirectoryProvider
 				i.remove();
 			}
 		}
-	}
-
-	public boolean updateUserAfterAuthentication()
-	{
-		return false;
 	}
 
 	protected boolean userExists(String id)

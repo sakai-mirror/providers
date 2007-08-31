@@ -330,23 +330,6 @@ public class SampleUserDirectoryProvider implements UserDirectoryProvider, Users
 	} // authenticateUser
 
 	/**
-	 * Will this provider update user records on successfull authentication? If so, the UserDirectoryService will cause these updates to be stored.
-	 * 
-	 * @return true if the user record may be updated after successfull authentication, false if not.
-	 */
-	public boolean updateUserAfterAuthentication()
-	{
-		return false;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	public void destroyAuthentication()
-	{
-	}
-
-	/**
 	 * {@inheritDoc}
 	 */
 	public boolean authenticateWithProviderFirst(String id)

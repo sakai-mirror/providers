@@ -372,24 +372,6 @@ public class KerberosUserDirectoryProvider implements UserDirectoryProvider
 		}
 	} // authenticateUser
 
-	/**
-	 * {@inheritDoc}
-	 */
-	public void destroyAuthentication()
-	{
-
-	}
-
-	/**
-	 * Will this provider update user records on successful authentication? If so, the UserDirectoryService will cause these updates to be stored.
-	 * 
-	 * @return true if the user record may be updated after successful authentication, false if not.
-	 */
-	public boolean updateUserAfterAuthentication()
-	{
-		return false;
-	}
-
 	/**********************************************************************************************************************************************************************************************************************************************************
 	 * Kerberos stuff
 	 *********************************************************************************************************************************************************************************************************************************************************/
@@ -616,14 +598,6 @@ public class KerberosUserDirectoryProvider implements UserDirectoryProvider
 	 * {@inheritDoc}
 	 */
 	public boolean authenticateWithProviderFirst(String id)
-	{
-		return false;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	public boolean createUserRecord(String id)
 	{
 		return false;
 	}
