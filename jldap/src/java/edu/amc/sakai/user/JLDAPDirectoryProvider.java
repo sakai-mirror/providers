@@ -178,6 +178,11 @@ public class JLDAPDirectoryProvider implements UserDirectoryProvider, LdapConnec
 	};
 
 	private boolean caseSensitiveCacheKeys = DEFAULT_CASE_SENSITIVE_CACHE_KEYS;
+	
+	private boolean allowGuestUserName = false;
+	public void setAllowGuestUserName(boolean be) {
+		allowGuestUserName = be;
+	}
 
 	public JLDAPDirectoryProvider() {
 		if ( M_log.isDebugEnabled() ) {
@@ -1347,7 +1352,8 @@ public class JLDAPDirectoryProvider implements UserDirectoryProvider, LdapConnec
 
 	/**
 	 * Is this username a valid LDAP username? Certain usernames like the LDAP wildcard (*)
-	 *  should not be queried aganinst the LDAP Server
+	 *  should not be queried aganinst the LDAP Server.
+	 *  In certain LDAP treas there may be users with the username 'guest' and no password
 	 * @param userLogin the username to check
 	 * @return 
 	 */
@@ -1358,7 +1364,14 @@ public class JLDAPDirectoryProvider implements UserDirectoryProvider, LdapConnec
 			return false;
 		}
 		
+		if (!allowGuestUserName && userLogin.equalsIgnoreCase(("guest"))) {
+			M_log.warn("Attempt made to authenticate with guest username");
+			return false;
+		}
+			
 		return true;
 	}
+	
+	
 	
 }

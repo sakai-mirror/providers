@@ -134,7 +134,9 @@
 				</entry>
 			</map>
 		</property -->
-		
+		<!-- Should usernames of Guest be allowed to authenticat? -->
+		<property name="allowGuestUserName"><value>false</value>
+		</property>
 	</bean>
 			
     <!-- An optional bean definition which can be used to customize LDAP
