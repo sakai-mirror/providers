@@ -357,6 +357,9 @@ public class JLDAPDirectoryProvider implements UserDirectoryProvider, LdapConnec
 			return false;
 		}
 
+		if(! isValidLdapUserName(userLogin))
+			return false;
+		
 		LDAPConnection conn = null;
 
 		try
@@ -452,6 +455,9 @@ public class JLDAPDirectoryProvider implements UserDirectoryProvider, LdapConnec
 			M_log.debug("findUserByEmail(): [email = " + email + "]");
 		}
 
+		if (!isValidLdapUserName(email))
+			return false;
+		
 		try {
 
 			String filter = 
@@ -664,7 +670,9 @@ public class JLDAPDirectoryProvider implements UserDirectoryProvider, LdapConnec
 
 		LdapUserData cachedUserData = getCachedUserEntry(eid);
 		boolean foundCachedUserData = cachedUserData != null;
-
+		if (!isValidLdapUserName(eid))
+			return null;
+		
 		if ( foundCachedUserData ) {
 			if ( M_log.isDebugEnabled() ) {
 				M_log.debug("getUserByEid(): found cached user [eid = " + eid + "]");
@@ -1337,4 +1345,20 @@ public class JLDAPDirectoryProvider implements UserDirectoryProvider, LdapConnec
 		return caseSensitiveCacheKeys;
 	}
 
+	/**
+	 * Is this username a valid LDAP username? Certain usernames like the LDAP wildcard (*)
+	 *  should not be queried aganinst the LDAP Server
+	 * @param userLogin the username to check
+	 * @return 
+	 */
+	private boolean isValidLdapUserName(String userLogin) {
+		
+		if (userLogin.equals("*")) {
+			M_log.warn("Attempt made to query wildcard '*' against LDAP ");
+			return false;
+		}
+		
+		return true;
+	}
+	
 }
