@@ -13,6 +13,8 @@
 	<classpathentry kind="src" path="jldap-integration-test/src/test/resources"/>
 	<classpathentry kind="src" path="jldap/src/test"/>
 	<classpathentry kind="src" path="jldap/src/test-resources"/>
+	<classpathentry kind="src" path="jldap-mock/src/java"/>
+	<classpathentry kind="src" path="jldap-mock/src/test"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="var" path="M2_REPO/commons-logging/commons-logging/1.0.4/commons-logging-1.0.4.jar"/>
 	<classpathentry kind="var" path="M2_REPO/openldap/ldap/2005.03.29/ldap-2005.03.29.jar"/>
