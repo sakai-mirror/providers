@@ -58,6 +58,7 @@ public class DefaultConfigurationTest extends SakaiDependencyInjectionTests {
 	private static String adminOfOfferingA = "adminOfOfferingA";
 	private static String instructorOfB = "instructorOfB";
 	private static String deptAdminOfADept = "deptAdminOfADept";
+	private static String deptAdminAndGsi = "deptAdminAndGsi";
 	private static String deptAdminOfBDept = "deptAdminOfBDept";
 	private static String waitListedStudentALec1 = "waitListedStudentALec1";
 	private static String studentADis1 = "studentADis1";
@@ -117,6 +118,7 @@ public class DefaultConfigurationTest extends SakaiDependencyInjectionTests {
 		addUser(adminOfOfferingA);
 		addUser(instructorOfB);
 		addUser(deptAdminOfADept);
+		addUser(deptAdminAndGsi);
 		addUser(deptAdminOfBDept);
 		addUser(waitListedStudentALec1);
 		addUser(studentADis1);
@@ -128,6 +130,7 @@ public class DefaultConfigurationTest extends SakaiDependencyInjectionTests {
 		
 		courseManagementAdmin.createCourseSet(deptA, deptA, deptA, "DEPT", null);
 		courseManagementAdmin.addOrUpdateCourseSetMembership(deptAdminOfADept, "DeptAdmin", deptA, "active");
+		courseManagementAdmin.addOrUpdateCourseSetMembership(deptAdminAndGsi, "DeptAdmin", deptA, "active");
 		courseManagementAdmin.createCourseSet(deptB, deptB, deptB, "DEPT", null);
 		courseManagementAdmin.addOrUpdateCourseSetMembership(deptAdminOfBDept, "DeptAdmin", deptB, "active");
 		courseManagementAdmin.createAcademicSession(term1, term1, term1, null, null);
@@ -158,6 +161,7 @@ public class DefaultConfigurationTest extends SakaiDependencyInjectionTests {
 		
 		courseManagementAdmin.addOrUpdateSectionMembership(studentADis1, "S", sectionADis1, "active");
 		courseManagementAdmin.addOrUpdateSectionMembership(gsiALec1, "GSI", sectionALec1, "active");
+		courseManagementAdmin.addOrUpdateSectionMembership(deptAdminAndGsi, "GSI", sectionALec1, "active");
 		courseManagementAdmin.addOrUpdateSectionMembership(instructorOfB, "I", sectionBLec1, "active");
 		
 		// Now let's make some course sites.
@@ -214,6 +218,11 @@ public class DefaultConfigurationTest extends SakaiDependencyInjectionTests {
 		member = site.getMember(gsiALec1);
 		Assert.assertNotNull(member);
 		Assert.assertEquals("Teaching Assistant", member.getRole().getId());
+		
+		// Check for the TA who also happens to be a DeptAdmin.
+		member = site.getMember(deptAdminAndGsi);
+		Assert.assertNotNull(member);
+		Assert.assertEquals("Instructor", member.getRole().getId());
 		
 		// Check for the official instructor of the enrollment set.
 		member = site.getMember(officialInstructorOfA);
