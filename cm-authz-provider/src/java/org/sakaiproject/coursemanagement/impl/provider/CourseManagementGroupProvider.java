@@ -27,17 +27,15 @@ import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.sakaiproject.authz.api.GroupProvider;
 import org.sakaiproject.coursemanagement.api.CourseManagementService;
 import org.sakaiproject.coursemanagement.api.Section;
-import org.sakaiproject.authz.api.GroupProvider;
 
 /**
  * A Sakai GroupProvider that utilizes the CourseManagementService and the
  * CmMappingService to supply authz data to Sakai.  This implementation uses
  * a list of RoleResolvers, which can be used to resolve a user's role in a section
  * based on memberships in parent objects such as CourseSets.
- * 
- * @author <a href="mailto:jholtzman@berkeley.edu">Josh Holtzman</a>
  */
 public class CourseManagementGroupProvider implements GroupProvider {
 	private static final Log log = LogFactory.getLog(CourseManagementGroupProvider.class);
@@ -65,28 +63,24 @@ public class CourseManagementGroupProvider implements GroupProvider {
 	}
 		
 	/**
-	 * Provides a Map of a user ids to (Sakai) roles for a given AuthzGroup.  Since a
-	 * user may be both enrolled in a mapped EnrollmentSet and have a Membership
-	 * role in a mapped Section, the following order of precedence is applied:
-	 * Official Instructor, Enrollment, membership
+	 * Provides a Map of user IDs to (Sakai) roles for the Course Section EIDs specified
+	 * in the input AuthzGroup provider string.
 	 */
-	public Map getUserRolesForGroup(String id) {
+	public Map<String, String> getUserRolesForGroup(String id) {
 		if(log.isDebugEnabled()) log.debug("------------------CMGP.getUserRolesForGroup(" + id + ")");
 		Map<String, String> userRoleMap = new HashMap<String, String>();
 		
 		String[] sectionEids = unpackId(id);
 		if(log.isDebugEnabled()) log.debug(id + " is mapped to " + sectionEids.length + " sections");
 
-		for(Iterator<RoleResolver> rrIter = roleResolvers.iterator(); rrIter.hasNext();) {
-			RoleResolver rr = rrIter.next();
-
+		for (RoleResolver rr : roleResolvers) {
 			for(int i=0; i < sectionEids.length; i++) {
 				String sectionEid = sectionEids[i];
 				Section section = cmService.getSection(sectionEid);
 				if(log.isDebugEnabled()) log.debug("Looking for roles in section " + sectionEid);
 			
 				Map<String, String> rrUserRoleMap = rr.getUserRoles(cmService, section);
-				// Only add the roles if the user isn't already in the map.  Earlier resolvers take precedence.
+
 				for(Iterator<String> rrRoleIter = rrUserRoleMap.keySet().iterator(); rrRoleIter.hasNext();) {
 					String userEid = rrRoleIter.next();
 					String existingRole = userRoleMap.get(userEid);
@@ -113,19 +107,18 @@ public class CourseManagementGroupProvider implements GroupProvider {
 	}
 
 	/**
-	 * Provides a map of AuthzGroup ids to Sakai roles for a given user.  Enrollment
-	 * is overridden by a membership role.
+	 * Provides a map of Course Section EIDs (which can be used as AuthzGroup provider IDs)
+	 * to Sakai roles for a given user.
 	 */
-	public Map getGroupRolesForUser(String userEid) {
+	public Map<String, String> getGroupRolesForUser(String userEid) {
 		if(log.isDebugEnabled()) log.debug("------------------CMGP.getGroupRolesForUser(" + userEid + ")");
 		Map<String, String> groupRoleMap = new HashMap<String, String>();
 		
-		for(Iterator rrIter = roleResolvers.iterator(); rrIter.hasNext();) {
-			RoleResolver rr = (RoleResolver)rrIter.next();
+		for(RoleResolver rr : roleResolvers) {
 			Map<String, String> rrGroupRoleMap = rr.getGroupRoles(cmService, userEid);
 			if(log.isDebugEnabled()) log.debug("Found " + rrGroupRoleMap.size() + " groups for " + userEid + " from resolver " + rr.getClass().getName());
 
-			// Only add the section eids if they aren't already in the map (earlier resolvers take precedence) or if the new role has a higher preference.
+			// Only add the section eids if they aren't already in the map or if the new role has a higher preference.
 			for(Iterator<String> rrRoleIter = rrGroupRoleMap.keySet().iterator(); rrRoleIter.hasNext();) {
 				String sectionEid = rrRoleIter.next();
 				String existingRole = groupRoleMap.get(sectionEid);

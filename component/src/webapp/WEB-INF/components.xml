@@ -60,11 +60,12 @@
 			</map>
 		</entry>
 	</util:map>
-
+	
+	<!-- Course Management site role and group provider services. -->
 	<!--
-		The next two bean definitions are specific to the provider implementation
-		and should be moved to a location in that project for easier testing
-		and maintenance.
+		TODO These bean definitions should really be kept within the project itself
+		for easier maintenance and testing. We continue to expose them here for
+		the sake of easier customization merging in Sakai 2.* versions.
 	-->
 
 	<!-- Temporary helper object to test the changes in XML rather than Java code. -->
