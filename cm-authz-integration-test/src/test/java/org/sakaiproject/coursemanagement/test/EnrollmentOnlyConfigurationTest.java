@@ -102,8 +102,8 @@ public class EnrollmentOnlyConfigurationTest extends BaseConfigurationTest {
 			When a user is mapped to multiple roles, they're preferred in the order: "Instructor", "Student".
 			
 			Sakai's arcane site authorization approach involves gluing course management EIDs together into
-			"realm provider" strings. Use a glue character (like "|") which will allow for EIDs that
-			contain a plus sign).
+			"realm provider" strings. The default provider uses a plus sign as the glue. Check this doesn't
+			block EIDs that contain the "+" character.
 		*/
 
 		addUser(officialInstructorOfA);

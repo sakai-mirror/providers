@@ -88,10 +88,6 @@ public class DefaultConfigurationTest extends BaseConfigurationTest {
 			At the CourseSet level, "DeptAdmin" members will get the "Instructor" role. No one else gets anything.
 			
 			When a user is mapped to multiple roles, they're preferred in the order: "Instructor", "Teaching Assistant", "Student".
-			
-			Sakai's arcane site authorization approach involves gluing course management EIDs together into
-			"realm provider" strings. By default, the glue is the character "+" (which means that EIDs can't
-			contain a plus sign).
 		*/
 
 		addUser(officialInstructorOfA);
