@@ -39,7 +39,10 @@ import org.sakaiproject.coursemanagement.api.Section;
  */
 public class CourseManagementGroupProvider implements GroupProvider {
 	private static final Log log = LogFactory.getLog(CourseManagementGroupProvider.class);
-	
+
+	// Configuration keys.
+	public static final String SITE_ROLE_RESOLUTION_ORDER = "siteRoleResolutionOrder";
+
 	/** The course management service */
 	CourseManagementService cmService;
 			
@@ -48,6 +51,9 @@ public class CourseManagementGroupProvider implements GroupProvider {
 	
 	/** The ordered list of role preferences.  Roles earlier in the list are preferred to those later in the list. */
 	List<String> rolePreferences;
+	
+	/** Map to support external service configuration */
+	Map<String, Object> configuration;
 	
 	// GroupProvider methods
 	
@@ -176,6 +182,17 @@ public class CourseManagementGroupProvider implements GroupProvider {
 
 	public void init() {
 		if(log.isInfoEnabled()) log.info("initializing " + this.getClass().getName());
+		
+		/**
+		 * Use the externally supplied configuration map, if any.
+		 */
+		if (configuration != null) {
+			if (rolePreferences != null) {
+				log.warn("Both a provider configuration object and direct role mappings have been defined. " +
+					"The configuration object will take precedence.");
+			}
+			setRolePreferences((List<String>)configuration.get(SITE_ROLE_RESOLUTION_ORDER));
+		}
 	}
 	
 	public void destroy() {
@@ -206,5 +223,9 @@ public class CourseManagementGroupProvider implements GroupProvider {
 
 	public void setRolePreferences(List<String> rolePreferences) {
 		this.rolePreferences = rolePreferences;
+	}
+
+	public void setConfiguration(Map<String, Object> configuration) {
+		this.configuration = configuration;
 	}
 }

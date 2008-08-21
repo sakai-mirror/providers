@@ -26,7 +26,7 @@
 		Configuration object which can safely be overridden by a deployment's
 		sakai-configuration.xml file.
 	-->
-	<util:map id="CourseManagementGroupProviderConfiguration">
+	<util:map id="org.sakaiproject.coursemanagement.GroupProviderConfiguration">
 		<entry key="siteRoleResolutionOrder">
 			<list>
 				<value>Instructor</value>
@@ -67,14 +67,6 @@
 		for easier maintenance and testing. We continue to expose them here for
 		the sake of easier customization merging in Sakai 2.* versions.
 	-->
-
-	<!-- Temporary helper object to test the changes in XML rather than Java code. -->
-	<bean id="CourseManagementGroupProviderConfigurationHolder"
-		class="org.sakaiproject.coursemanagement.impl.provider.MapHolder"
-		lazy-init="true">
-		<property name="map" ref="CourseManagementGroupProviderConfiguration"/>
-	</bean>
-
 	<!--
 		The default group provider is based on the Course Management service,
 		and calls the service many times. Since the default Course Management
@@ -99,31 +91,17 @@
 				init-method="init"
 				destroy-method="destroy">
 				<property name="cmService" ref="org.sakaiproject.coursemanagement.api.CourseManagementService"/>
-				<property name="rolePreferences">
-					<util:property-path path="CourseManagementGroupProviderConfigurationHolder.map[siteRoleResolutionOrder]"/>
-				</property>
+				<property name="configuration" ref="org.sakaiproject.coursemanagement.GroupProviderConfiguration"/>
 				<property name="roleResolvers">
 					<list>
-						<bean class="org.sakaiproject.coursemanagement.impl.provider.SectionRoleResolver">
-							<property name="roleMap">
-								<util:property-path path="CourseManagementGroupProviderConfigurationHolder.map[sectionRoleToSiteRole]"/>
-							</property>
-							<property name="officialInstructorRole">
-								<util:property-path path="CourseManagementGroupProviderConfigurationHolder.map[officialInstructorToSiteRole]"/>
-							</property>
-							<property name="enrollmentStatusRoleMap">
-								<util:property-path path="CourseManagementGroupProviderConfigurationHolder.map[enrollmentStatusToSiteRole]"/>
-							</property>
+						<bean class="org.sakaiproject.coursemanagement.impl.provider.SectionRoleResolver" init-method="init">
+							<property name="configuration" ref="org.sakaiproject.coursemanagement.GroupProviderConfiguration"/>
 						</bean>
-						<bean class="org.sakaiproject.coursemanagement.impl.provider.CourseOfferingRoleResolver">
-							<property name="roleMap">
-								<util:property-path path="CourseManagementGroupProviderConfigurationHolder.map[courseOfferingRoleToSiteRole]"/>
-							</property>
+						<bean class="org.sakaiproject.coursemanagement.impl.provider.CourseOfferingRoleResolver" init-method="init">
+							<property name="configuration" ref="org.sakaiproject.coursemanagement.GroupProviderConfiguration"/>
 						</bean>
-						<bean class="org.sakaiproject.coursemanagement.impl.provider.CourseSetRoleResolver">
-							<property name="roleMap">
-								<util:property-path path="CourseManagementGroupProviderConfigurationHolder.map[courseSetRoleToSiteRole]"/>
-							</property>
+						<bean class="org.sakaiproject.coursemanagement.impl.provider.CourseSetRoleResolver" init-method="init">
+							<property name="configuration" ref="org.sakaiproject.coursemanagement.GroupProviderConfiguration"/>
 						</bean>
 					</list>
 				</property>

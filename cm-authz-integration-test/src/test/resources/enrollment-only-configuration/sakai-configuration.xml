@@ -14,7 +14,7 @@
 		character (e.g., "Advanced C++") by using "|" as a provider string separator.
 	-->
 
-	<util:map id="CourseManagementGroupProviderConfiguration">
+	<util:map id="org.sakaiproject.coursemanagement.GroupProviderConfiguration">
 		<entry key="siteRoleResolutionOrder">
 			<list>
 				<value>Instructor</value>

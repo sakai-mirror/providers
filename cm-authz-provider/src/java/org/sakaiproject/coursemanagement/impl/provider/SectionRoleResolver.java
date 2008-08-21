@@ -21,7 +21,6 @@
 package org.sakaiproject.coursemanagement.impl.provider;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
@@ -36,18 +35,31 @@ import org.sakaiproject.coursemanagement.api.Section;
 
 /**
  * Resolves users roles in sections.
- * 
- * @author <a href="mailto:jholtzman@berkeley.edu">Josh Holtzman</a>
- *
  */
-public class SectionRoleResolver extends BaseRoleResolver implements RoleResolver {
+public class SectionRoleResolver extends BaseRoleResolver {
 	static final Log log = LogFactory.getLog(SectionRoleResolver.class);
+
+	// Configuration keys.
+	public static final String OFFICIAL_INSTRUCTOR_TO_SITE_ROLE = "officialInstructorToSiteRole";
+	public static final String ENROLLMENT_STATUS_TO_SITE_ROLE = "enrollmentStatusToSiteRole";
+	public static final String SECTION_ROLE_TO_SITE_ROLE = "sectionRoleToSiteRole";
 
 	/** The Sakai role to use for official instructors of EnrollmentSets */
 	protected String officialInstructorRole;
 
 	/** The Sakai roles to use for official enrollments in EnrollmentSets,keyed on the enrollment status */
 	protected Map<String, String> enrollmentStatusRoleMap;
+	
+	/**
+	 * Internal configuration.
+	 */
+	public void init() {
+		if (configuration != null) {
+			setRoleMap((Map<String, String>)configuration.get(SECTION_ROLE_TO_SITE_ROLE));
+			setOfficialInstructorRole((String)configuration.get(OFFICIAL_INSTRUCTOR_TO_SITE_ROLE));
+			setEnrollmentStatusRoleMap((Map<String, String>)configuration.get(ENROLLMENT_STATUS_TO_SITE_ROLE));
+		}
+	}
 
 	/**
 	 * Since a user may be both enrolled in a mapped EnrollmentSet and have a
@@ -61,35 +73,41 @@ public class SectionRoleResolver extends BaseRoleResolver implements RoleResolve
 		if(log.isDebugEnabled()) log.debug( "EnrollmentSet  " + enrSet + " is attached to section " + section.getEid());
 		if(enrSet != null) {
 			// Check for official instructors
-			Set<String> officialInstructors = cmService.getInstructorsOfRecordIds(enrSet.getEid());
-			for(Iterator<String> iter = officialInstructors.iterator(); iter.hasNext();) {
-				userRoleMap.put(iter.next(), officialInstructorRole);
+			if ((officialInstructorRole != null) && (officialInstructorRole.length() > 0)) {
+				Set<String> officialInstructors = cmService.getInstructorsOfRecordIds(enrSet.getEid());
+				for(Iterator<String> iter = officialInstructors.iterator(); iter.hasNext();) {
+					userRoleMap.put(iter.next(), officialInstructorRole);
+				}
 			}
 
 			// Check for enrollments
-			Set<Enrollment> enrollments = cmService.getEnrollments(section.getEnrollmentSet().getEid());
-			for(Enrollment enr : enrollments) {
-				if(enr.isDropped()) {
-					continue;
-				}
-				String roleFromEnrollmentStatus = (String)enrollmentStatusRoleMap.get(enr.getEnrollmentStatus());
+			if ((enrollmentStatusRoleMap != null) || (enrollmentStatusRoleMap.size() > 0)) {
+				Set<Enrollment> enrollments = cmService.getEnrollments(section.getEnrollmentSet().getEid());
+				for(Enrollment enr : enrollments) {
+					if(enr.isDropped()) {
+						continue;
+					}
+					String roleFromEnrollmentStatus = (String)enrollmentStatusRoleMap.get(enr.getEnrollmentStatus());
 
-				// Only add the enrollment if it's not dropped and it has an enrollment role mapping
-				// Defer to the official instructor status
-				if( ! userRoleMap.containsKey(enr.getUserId()) && roleFromEnrollmentStatus != null &&  ! enr.isDropped()) {
-					userRoleMap.put(enr.getUserId(), roleFromEnrollmentStatus);
+					// Only add the enrollment if it's not dropped and it has an enrollment role mapping
+					// Defer to the official instructor status
+					if( ! userRoleMap.containsKey(enr.getUserId()) && roleFromEnrollmentStatus != null &&  ! enr.isDropped()) {
+						userRoleMap.put(enr.getUserId(), roleFromEnrollmentStatus);
+					}
 				}
 			}
 		}
 		
 		// Check for memberships
-		Set<Membership> memberships = cmService.getSectionMemberships(section.getEid());
-		for(Membership membership : memberships) {
-			// Only add the membership role if the user isn't enrolled or an official instructor(these take precedence)
-			if( ! userRoleMap.containsKey(membership.getUserId())) {
-				String convertedRole = convertRole(membership.getRole());
-				if(convertedRole != null) {
-					userRoleMap.put(membership.getUserId(), convertedRole);
+		if ((roleMap != null) || (roleMap.size() > 0)) {
+			Set<Membership> memberships = cmService.getSectionMemberships(section.getEid());
+			for(Membership membership : memberships) {
+				// Only add the membership role if the user isn't enrolled or an official instructor(these take precedence)
+				if( ! userRoleMap.containsKey(membership.getUserId())) {
+					String convertedRole = convertRole(membership.getRole());
+					if(convertedRole != null) {
+						userRoleMap.put(membership.getUserId(), convertedRole);
+					}
 				}
 			}
 		}
@@ -97,34 +115,41 @@ public class SectionRoleResolver extends BaseRoleResolver implements RoleResolve
 	}
 
 	public Map<String, String> getGroupRoles(CourseManagementService cmService, String userEid) {
-		// Start with the sectionEid->role map
-		Map<String, String> groupRoleMap = cmService.findSectionRoles(userEid);
+		Map<String, String> groupRoleMap = new HashMap<String, String>();
 		
-		// Convert these roles to Sakai roles
-		Set<String> iterSet = new HashSet<String>(groupRoleMap.keySet());
-		for(String key : iterSet) {
-			groupRoleMap.put(key, convertRole((String)groupRoleMap.get(key)));
+		// Start with the sectionEid->role map
+		if ((roleMap != null) || (roleMap.size() > 0)) {
+			Map<String, String> sectionRoles = cmService.findSectionRoles(userEid);
+
+			// Convert these roles to Sakai roles
+			for(String key : sectionRoles.keySet()) {
+				groupRoleMap.put(key, convertRole((String)sectionRoles.get(key)));
+			}
 		}
 
 		// Next add all enrollments to the sectionEid->role map, overriding memberships
-		Set<Section> enrolledSections = cmService.findEnrolledSections(userEid);
-		if(log.isDebugEnabled()) log.debug("Found " + enrolledSections.size() + " currently enrolled sections for user " + userEid);
-		for(Section section : enrolledSections) {
-			if(log.isDebugEnabled()) log.debug(userEid + " is enrolled in an enrollment set attached to section " + section.getEid());
-			// TODO Calling this for every section  is inefficient -- add new method to CM service?
-			Enrollment enr = cmService.findEnrollment(userEid, section.getEnrollmentSet().getEid());
-			String roleFromEnrollmentStatus = enrollmentStatusRoleMap.get(enr.getEnrollmentStatus());
-			
-			// Only add the enrollment if it's not dropped and it has an enrollment role mapping
-			if(roleFromEnrollmentStatus != null && ! enr.isDropped()) {
-				groupRoleMap.put(section.getEid(), roleFromEnrollmentStatus);
+		if ((enrollmentStatusRoleMap != null) || (enrollmentStatusRoleMap.size() > 0)) {
+			Set<Section> enrolledSections = cmService.findEnrolledSections(userEid);
+			if(log.isDebugEnabled()) log.debug("Found " + enrolledSections.size() + " currently enrolled sections for user " + userEid);
+			for(Section section : enrolledSections) {
+				if(log.isDebugEnabled()) log.debug(userEid + " is enrolled in an enrollment set attached to section " + section.getEid());
+				// TODO Calling this for every section  is inefficient -- add new method to CM service?
+				Enrollment enr = cmService.findEnrollment(userEid, section.getEnrollmentSet().getEid());
+				String roleFromEnrollmentStatus = enrollmentStatusRoleMap.get(enr.getEnrollmentStatus());
+
+				// Only add the enrollment if it's not dropped and it has an enrollment role mapping
+				if(roleFromEnrollmentStatus != null && ! enr.isDropped()) {
+					groupRoleMap.put(section.getEid(), roleFromEnrollmentStatus);
+				}
 			}
 		}
 
 		// Finally, add the official instructors, overriding any other roles if necessary
-		Set<Section> instructingSections = cmService.findInstructingSections(userEid);
-		for(Section instructingSection : instructingSections) {
-			groupRoleMap.put(instructingSection.getEid(), officialInstructorRole);
+		if ((officialInstructorRole != null) && (officialInstructorRole.length() > 0)) {
+			Set<Section> instructingSections = cmService.findInstructingSections(userEid);
+			for(Section instructingSection : instructingSections) {
+				groupRoleMap.put(instructingSection.getEid(), officialInstructorRole);
+			}
 		}
 		
 		if(log.isDebugEnabled()) {
@@ -142,4 +167,5 @@ public class SectionRoleResolver extends BaseRoleResolver implements RoleResolve
 	public void setEnrollmentStatusRoleMap(Map<String, String> enrollmentStatusRoleMap) {
 		this.enrollmentStatusRoleMap = enrollmentStatusRoleMap;
 	}
+	
 }

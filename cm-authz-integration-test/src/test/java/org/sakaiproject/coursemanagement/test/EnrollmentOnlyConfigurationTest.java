@@ -217,7 +217,7 @@ public class EnrollmentOnlyConfigurationTest extends BaseConfigurationTest {
 		Assert.assertEquals("Instructor", member.getRole().getId());
 		
 		// Check for non-integration of the course offering member in the instructor role.
-		member = site.getMember(officialInstructorOfA);
+		member = site.getMember(unofficialInstructorOfA);
 		Assert.assertNull(member);
 		
 		// Check for non-integration of the department administrator.
@@ -226,8 +226,7 @@ public class EnrollmentOnlyConfigurationTest extends BaseConfigurationTest {
 		
 		// Check for non-integration of the course admin.
 		member = site.getMember(adminOfOfferingA);
-		Assert.assertNotNull(member);
-		Assert.assertEquals("Instructor", member.getRole().getId());
+		Assert.assertNull(member);
 		
 		// Check for an instructor in another course site.
 		member = site.getMember(instructorOfB);

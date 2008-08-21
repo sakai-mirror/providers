@@ -41,11 +41,29 @@ import org.sakaiproject.coursemanagement.api.exception.IdNotFoundException;
 public class CourseSetRoleResolver extends BaseRoleResolver {
 	private static final Log log = LogFactory.getLog(CourseSetRoleResolver.class);
 
+	// Configuration keys.
+	public static final String COURSE_SET_ROLE_TO_SITE_ROLE = "courseSetRoleToSiteRole";
+
+	/**
+	 * Internal configuration.
+	 */
+	public void init() {
+		if (configuration != null) {
+			setRoleMap((Map<String, String>)configuration.get(COURSE_SET_ROLE_TO_SITE_ROLE));
+		}
+	}
+
 	/**
 	 * {@inheritDoc}
 	 */
 	public Map<String, String> getUserRoles(CourseManagementService cmService, Section section) {
 		Map<String, String> userRoleMap = new HashMap<String, String>();
+
+		// Don't bother doing anything if the integration is configured to ignore
+		// CourseSet memberships.
+		if ((roleMap == null) || (roleMap.size() == 0)) {
+			return userRoleMap;
+		}
 
 		Set<String> csEids = getCourseSetEids(cmService,section);
 		if(csEids.isEmpty()) {
@@ -81,6 +99,13 @@ public class CourseSetRoleResolver extends BaseRoleResolver {
 	 */
 	public Map<String, String> getGroupRoles(CourseManagementService cmService, String userEid) {
 		Map<String, String> sectionRoles = new HashMap<String, String>();
+
+		// Don't bother doing anything if the integration is configured to ignore
+		// CourseSet memberships.
+		if ((roleMap == null) || (roleMap.size() == 0)) {
+			return sectionRoles;
+		}
+
 		Map<String, String> courseSetRoles = cmService.findCourseSetRoles(userEid);
 		
 		// Look at each of the course sets for which this user has a role
