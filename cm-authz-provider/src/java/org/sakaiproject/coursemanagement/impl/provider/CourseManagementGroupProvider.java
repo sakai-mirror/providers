@@ -24,6 +24,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -42,6 +43,11 @@ public class CourseManagementGroupProvider implements GroupProvider {
 
 	// Configuration keys.
 	public static final String SITE_ROLE_RESOLUTION_ORDER = "siteRoleResolutionOrder";
+
+	// Handle packing and unpacking safely.
+	public static String EID_SEPARATOR = "+";
+	public static String QUOTED_SEPARATOR = "/+";
+	public static Pattern EID_SEPARATOR_PATTERN = Pattern.compile("(?<!/)\\+");
 
 	/** The course management service */
 	CourseManagementService cmService;
@@ -162,9 +168,12 @@ public class CourseManagementGroupProvider implements GroupProvider {
 		
 		StringBuilder sb = new StringBuilder();
 		for(int i=0; i<ids.length; i++) {
-			sb.append(ids[i]);
+			// First, escape any embedded separator characters.
+			String eid = (ids[i]).replace(EID_SEPARATOR, QUOTED_SEPARATOR);
+			
+			sb.append(eid);
 			if(i < ids.length - 1) {
-				sb.append("+");
+				sb.append(EID_SEPARATOR);
 			}
 		}
 		return sb.toString();
@@ -174,7 +183,16 @@ public class CourseManagementGroupProvider implements GroupProvider {
 		if(id == null) {
 			return new String[0];
 		}
-		return id.split("\\+");
+		
+		String[] ids = EID_SEPARATOR_PATTERN.split(id);
+		
+		// Unescape any embedded separator characters.
+		for(int i=0; i<ids.length; i++) {
+			String eid = (ids[i]).replace(QUOTED_SEPARATOR, EID_SEPARATOR);
+			ids[i] = eid;
+		}
+
+		return ids;
 	}
 	
 

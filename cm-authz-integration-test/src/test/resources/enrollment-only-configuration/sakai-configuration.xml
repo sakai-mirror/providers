@@ -9,9 +9,6 @@
 		This configures a simpler integration of course management services with
 		Sakai site groups and roles, based solely on enrollment sets and not including
 		any coordination with department administrators, etc.
-		
-		This configuration also allows for course management EIDs that contain the "+"
-		character (e.g., "Advanced C++") by using "|" as a provider string separator.
 	-->
 
 	<util:map id="org.sakaiproject.coursemanagement.GroupProviderConfiguration">

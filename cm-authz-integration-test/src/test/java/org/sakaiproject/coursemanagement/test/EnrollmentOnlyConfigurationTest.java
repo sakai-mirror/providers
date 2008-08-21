@@ -68,8 +68,12 @@ public class EnrollmentOnlyConfigurationTest extends BaseConfigurationTest {
 	private static String canonicalA = "canonicalA";
 	private static String canonicalB = "canonicalB";
 	private static String enrollmentALec1 = "enrollmentALec1";
-	private static String sectionALec1 = "sectionALec1";
-	private static String sectionADis1 = "sectionADis1";
+	
+	// Let's try to confuse the service by including some "+" characters in
+	// the section EIDs....
+	private static String sectionALec1 = "sectionA C++ Lec1";
+	private static String sectionADis1 = "sectionA Site + Sound /+/-/ Dis1";
+	
 	private static String enrollmentBLec1 = "enrollmentBLec1";
 	private static String sectionBLec1 = "sectionBLec1";
 
