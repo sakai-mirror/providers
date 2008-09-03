@@ -42,7 +42,7 @@ import org.sakaiproject.site.api.Site;
  * "+" character (e.g., "Advanced C++") by using "|" as a provider string
  * separator.
  */
-public class EnrollmentOnlyConfigurationTest extends BaseConfigurationTest {
+public class EnrollmentOnlyConfigurationTest extends ConfigurationTestBase {
 	static final Log log = LogFactory.getLog(EnrollmentOnlyConfigurationTest.class);
 	
 	private static String officialInstructorOfA = "officialInstructorOfA";

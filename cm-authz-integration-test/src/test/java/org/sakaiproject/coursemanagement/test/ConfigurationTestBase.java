@@ -34,8 +34,8 @@ import org.sakaiproject.tool.api.SessionManager;
 import org.sakaiproject.user.api.UserDirectoryService;
 import org.sakaiproject.user.api.UserNotDefinedException;
 
-public class BaseConfigurationTest extends SakaiDependencyInjectionTests {
-	static final Log log = LogFactory.getLog(BaseConfigurationTest.class);
+public class ConfigurationTestBase extends SakaiDependencyInjectionTests {
+	static final Log log = LogFactory.getLog(ConfigurationTestBase.class);
 	
 	protected AuthzGroupService authzGroupService;
 	protected SiteService siteService;

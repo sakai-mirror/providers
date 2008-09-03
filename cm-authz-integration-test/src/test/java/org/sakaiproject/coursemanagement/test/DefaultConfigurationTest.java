@@ -34,7 +34,7 @@ import org.sakaiproject.site.api.Site;
 /**
  * Test the default configuration of the Course Management Group provider.
  */
-public class DefaultConfigurationTest extends BaseConfigurationTest {
+public class DefaultConfigurationTest extends ConfigurationTestBase {
 	private static String officialInstructorOfA = "officialInstructorOfA";
 	private static String unofficialInstructorOfA = "unofficialInstructorOfA";
 	private static String adminOfOfferingA = "adminOfOfferingA";
