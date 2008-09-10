@@ -15,6 +15,7 @@
 		<entry key="siteRoleResolutionOrder">
 			<list>
 				<value>Instructor</value>
+				<value>Teaching Assistant</value>
 				<value>Student</value>
 			</list>
 		</entry>
@@ -23,6 +24,9 @@
 			<map>
 				<entry key="E" value="Student"/>
 				<entry key="W" value="Student"/>
+				
+				<!-- A less contrived example would be an installation with multiple student roles. -->
+				<entry key="VeryWellTrusted" value="Teaching Assistant"/>
 			</map>
 		</entry>
 		<entry key="sectionRoleToSiteRole">

@@ -59,6 +59,7 @@ public class EnrollmentOnlyConfigurationTest extends ConfigurationTestBase {
 	private static String expelledStudentALec1 = "expelledStudentALec1";
 	private static String unofficialStudentALec1 = "unofficialStudentALec1";
 	private static String gsiALec1 = "gsiALec1";
+	private static String taAsEnrollmentALec1 = "taAsEnrollmentALec1";
 	
 	private static String term1 = "term1";
 	private static String courseOfferingA = "courseOfferingA";
@@ -120,6 +121,7 @@ public class EnrollmentOnlyConfigurationTest extends ConfigurationTestBase {
 		addUser(expelledStudentALec1);
 		addUser(unofficialStudentALec1);
 		addUser(gsiALec1);
+		addUser(taAsEnrollmentALec1);
 		
 		courseManagementAdmin.createCourseSet(deptA, deptA, deptA, "DEPT", null);
 		courseManagementAdmin.addOrUpdateCourseSetMembership(deptAdminOfADept, "DeptAdmin", deptA, "active");
@@ -151,6 +153,7 @@ public class EnrollmentOnlyConfigurationTest extends ConfigurationTestBase {
 		courseManagementAdmin.addOrUpdateEnrollment(droppedStudentALec1, enrollmentALec1, "E", "4", "letter");
 		courseManagementAdmin.removeEnrollment(droppedStudentALec1, enrollmentALec1);
 		courseManagementAdmin.addOrUpdateEnrollment(expelledStudentALec1, enrollmentALec1, "X", "4", "letter");
+		courseManagementAdmin.addOrUpdateEnrollment(taAsEnrollmentALec1, enrollmentALec1, "VeryWellTrusted", "4", "letter");
 		
 		courseManagementAdmin.addOrUpdateSectionMembership(studentADis1, "learner", sectionADis1, "active");
 		courseManagementAdmin.addOrUpdateSectionMembership(gsiALec1, "GSI", sectionALec1, "active");
@@ -197,6 +200,11 @@ public class EnrollmentOnlyConfigurationTest extends ConfigurationTestBase {
 		// Check for the dropped student.
 		member = site.getMember(droppedStudentALec1);
 		Assert.assertNull(member);
+		
+		// Check for the enrollment record mapped to another role.
+		member = site.getMember(taAsEnrollmentALec1);
+		Assert.assertNotNull(member);
+		Assert.assertEquals("Teaching Assistant", member.getRole().getId());
 		
 		// Check for the student in a discussion section.
 		member = site.getMember(studentADis1);

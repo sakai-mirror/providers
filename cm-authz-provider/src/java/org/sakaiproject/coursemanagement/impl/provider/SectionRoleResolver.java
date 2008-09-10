@@ -55,9 +55,12 @@ public class SectionRoleResolver extends BaseRoleResolver {
 	 */
 	public void init() {
 		if (configuration != null) {
+			if (log.isDebugEnabled()) log.debug("Using configuration object; section role map=" + configuration.get(SECTION_ROLE_TO_SITE_ROLE) + ", officialInstructorRole=" + configuration.get(OFFICIAL_INSTRUCTOR_TO_SITE_ROLE) + ", enrollment status role map=" + configuration.get(ENROLLMENT_STATUS_TO_SITE_ROLE));
 			setRoleMap((Map<String, String>)configuration.get(SECTION_ROLE_TO_SITE_ROLE));
 			setOfficialInstructorRole((String)configuration.get(OFFICIAL_INSTRUCTOR_TO_SITE_ROLE));
 			setEnrollmentStatusRoleMap((Map<String, String>)configuration.get(ENROLLMENT_STATUS_TO_SITE_ROLE));
+		} else {
+			if (log.isDebugEnabled()) log.debug("Not using configuration object");
 		}
 	}
 
