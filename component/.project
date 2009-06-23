@@ -1,12 +1,10 @@
 <projectDescription>
-  <name>sakai-coursemanagement-cm-provider-impl</name>
+  <name>sakai-provider-pack</name>
   <comment/>
   <projects>
-    <project>sakai-authz-api</project>
-    <project>sakai-coursemanagement-api</project>
-    <project>sakai-entity-api</project>
-    <project>sakai-site-manage-api</project>
-    <project>sakai-user-api</project>
+    <project>sakai-coursemanagement-authz-provider-impl</project>
+    <project>sakai-coursemanagement-cm-provider-impl</project>
+    <project>sakai-sample-provider</project>
     <project>sakai-util</project>
   </projects>
   <buildSpec>
