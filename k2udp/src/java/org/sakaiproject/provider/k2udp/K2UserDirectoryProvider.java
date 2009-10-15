@@ -44,7 +44,7 @@ import org.sakaiproject.user.api.UsersShareEmailUDP;
 public class K2UserDirectoryProvider implements UserDirectoryProvider, UsersShareEmailUDP, DisplayAdvisorUDP
 {
 	/** Our log (commons). */
-	private static Log M_log = LogFactory.getLog(SampleUserDirectoryProvider.class);
+	private static Log M_log = LogFactory.getLog(K2UserDirectoryProvider.class);
 
 	/**********************************************************************************************************************************************************************************************************************************************************
 	 * Dependencies and their setter methods
@@ -180,7 +180,7 @@ public class K2UserDirectoryProvider implements UserDirectoryProvider, UsersShar
 	/**
 	 * Construct.
 	 */
-	public SampleUserDirectoryProvider()
+	public K2UserDirectoryProvider()
 	{
 	}
 
