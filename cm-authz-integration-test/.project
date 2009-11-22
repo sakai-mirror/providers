@@ -1,10 +1,7 @@
 <projectDescription>
   <name>sakai-coursemanagement-authz-provider-integration-test</name>
   <comment/>
-  <projects>
-    <project>sakai-coursemanagement-api</project>
-    <project>sakai-test-harness</project>
-  </projects>
+  <projects/>
   <buildSpec>
     <buildCommand>
       <name>org.eclipse.jdt.core.javabuilder</name>
