@@ -196,4 +196,13 @@
   	</bean>
  -->
 
+<!--	Uncomment and configure to use the K2 Hybrid Provider.
+-->
+	<bean id="org.sakaiproject.user.api.UserDirectoryProvider"
+			class="org.sakaiproject.provider.user.K2UserDirectoryProvider"
+			init-method="init">
+  		<property name="threadLocalManager">
+  			<ref bean="org.sakaiproject.thread_local.api.ThreadLocalManager" />
+  		</property>
+	</bean>
 </beans>
