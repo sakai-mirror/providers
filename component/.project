@@ -1,0 +1,18 @@
+<projectDescription>
+  <name>sakai-provider-pack</name>
+  <comment/>
+  <projects>
+    <project>sakai-coursemanagement-authz-provider-impl</project>
+    <project>sakai-coursemanagement-cm-provider-impl</project>
+    <project>sakai-sample-provider</project>
+    <project>sakai-util</project>
+  </projects>
+  <buildSpec>
+    <buildCommand>
+      <name>org.eclipse.jdt.core.javabuilder</name>
+    </buildCommand>
+  </buildSpec>
+  <natures>
+    <nature>org.eclipse.jdt.core.javanature</nature>
+  </natures>
+</projectDescription>
