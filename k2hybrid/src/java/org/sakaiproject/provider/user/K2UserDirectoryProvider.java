@@ -53,6 +53,9 @@ public class K2UserDirectoryProvider implements UserDirectoryProvider {
 	public final static String CURRENT_HTTP_REQUEST = "org.sakaiproject.util.RequestFilter.http_request";
 	private static final String COOKIE_NAME = "SAKAI-TRACKING";
 	private static final String ANONYMOUS = "anonymous";
+	private static final String THREAD_LOCAL_CACHE_KEY = K2UserDirectoryProvider.class
+			.getName()
+			+ ".cache";
 	/**
 	 * The K2 RESTful service to validate authenticated users
 	 */
@@ -68,7 +71,6 @@ public class K2UserDirectoryProvider implements UserDirectoryProvider {
 	 *      org.sakaiproject.user.api.UserEdit, java.lang.String)
 	 */
 	public boolean authenticateUser(String eid, UserEdit edit, String password) {
-		// TODO complete this method
 		if (LOG.isDebugEnabled()) {
 			LOG.debug("authenticateUser(String " + eid
 					+ ", UserEdit edit, String password)");
@@ -151,6 +153,11 @@ public class K2UserDirectoryProvider implements UserDirectoryProvider {
 	}
 
 	private List<Object> getPrincipalLoggedIntoK2(HttpServletRequest request) {
+		LOG.debug("getPrincipalLoggedIntoK2(HttpServletRequest request)");
+		final Object cache = threadLocalManager.get(THREAD_LOCAL_CACHE_KEY);
+		if (cache != null && cache instanceof NakamuraUser) {
+			return ((NakamuraUser) cache).authnInfo;
+		}
 		String eid = null;
 		JSONObject jsonObject = null;
 		final String secret = getSecret(request);
@@ -187,6 +194,10 @@ public class K2UserDirectoryProvider implements UserDirectoryProvider {
 		List<Object> list = new ArrayList<Object>(2);
 		list.add(0, eid);
 		list.add(1, jsonObject);
+
+		// cache results in thread local
+		threadLocalManager.set(THREAD_LOCAL_CACHE_KEY, new NakamuraUser(list));
+
 		return list;
 	}
 
@@ -225,5 +236,18 @@ public class K2UserDirectoryProvider implements UserDirectoryProvider {
 	 */
 	public void setThreadLocalManager(ThreadLocalManager threadLocalManager) {
 		this.threadLocalManager = threadLocalManager;
+	}
+
+	/**
+	 * Private class for storing cached results from Nakamura lookup. Use of a
+	 * private class will help prevent hijacking of the cache results.
+	 * 
+	 */
+	private class NakamuraUser {
+		private List<Object> authnInfo;
+
+		private NakamuraUser(List<Object> authnInfo) {
+			this.authnInfo = authnInfo;
+		}
 	}
 }
