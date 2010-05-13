@@ -67,6 +67,18 @@
     	<artifactId>jcip-annotations</artifactId>
     	<version>1.0</version>
     </dependency>
+    <!-- TODO bind to release version when it is ready 0.1? -->
+    <dependency>
+      <groupId>org.sakaiproject</groupId>
+      <artifactId>sakai-hybrid-util</artifactId>
+      <version>1.0-SNAPSHOT</version>
+    </dependency>
+    <!-- TODO bind to release version when it is ready 0.5? -->
+    <dependency>
+      <groupId>org.sakaiproject.nakamura</groupId>
+      <artifactId>org.sakaiproject.nakamura.utils</artifactId>
+      <version>0.4-SNAPSHOT</version>
+    </dependency>
   </dependencies>
   <build>
     <resources/>

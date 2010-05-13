@@ -39,6 +39,7 @@ import org.sakaiproject.component.cover.ServerConfigurationService;
 import org.sakaiproject.thread_local.api.ThreadLocalManager;
 import org.sakaiproject.user.api.UserDirectoryProvider;
 import org.sakaiproject.user.api.UserEdit;
+import org.sakaiproject.util.XSakaiToken;
 
 /**
  *
@@ -56,10 +57,28 @@ public class K2UserDirectoryProvider implements UserDirectoryProvider {
 	private static final String THREAD_LOCAL_CACHE_KEY = K2UserDirectoryProvider.class
 			.getName()
 			+ ".cache";
+	public static final String CONFIG_PREFIX = "org.sakaiproject.provider.user.K2UserDirectoryProvider";
+	public static final String CONFIG_PRINCIPAL = CONFIG_PREFIX + ".principal";
+	public static final String CONFIG_HOST_NAME = CONFIG_PREFIX + ".hostname";
+	public static final String CONFIG_VALIDATE_URL = CONFIG_PREFIX
+			+ ".validateUrl";
+
 	/**
-	 * The K2 RESTful service to validate authenticated users
+	 * The Nakamura RESTful service to validate authenticated users
 	 */
-	protected String vaildateUrl = null;
+	protected String validateUrl = "http://localhost/var/cluster/user.cookie.json?c=";
+
+	/**
+	 * The nakamura user that has permissions to GET
+	 * /var/cluster/user.cookie.json.
+	 */
+	protected String principal = "admin";
+
+	/**
+	 * The hostname we will use to lookup the sharedSecret for access to
+	 * validateUrl.
+	 */
+	protected String hostname = "localhost";
 
 	/**
 	 * Injected ThreadLocalManager
@@ -163,13 +182,14 @@ public class K2UserDirectoryProvider implements UserDirectoryProvider {
 		final String secret = getSecret(request);
 		if (secret != null) {
 			DefaultHttpClient http = new DefaultHttpClient();
-			// TODO Complete basic authentication to K2 service when enabled.
-			// http.getCredentialsProvider().setCredentials(
-			// new AuthScope("localhost", 443),
-			// new UsernamePasswordCredentials("username", "password"));
 			try {
-				URI uri = new URI(vaildateUrl + secret);
+				final URI uri = new URI(validateUrl + secret);
 				HttpGet httpget = new HttpGet(uri);
+				// authenticate to Nakamura using x-sakai-token mechanism
+				final String token = XSakaiToken.createToken(hostname,
+						principal);
+				httpget.addHeader(XSakaiToken.X_SAKAI_TOKEN_HEADER, token);
+				//
 				ResponseHandler<String> responseHandler = new BasicResponseHandler();
 				String responseBody = http.execute(httpget, responseHandler);
 				jsonObject = JSONObject.fromObject(responseBody);
@@ -183,10 +203,11 @@ public class K2UserDirectoryProvider implements UserDirectoryProvider {
 				// usually a 404 error - could not find cookie / not valid
 				if (LOG.isDebugEnabled()) {
 					LOG.debug("HttpResponseException: " + e.getMessage() + ": "
-							+ e.getStatusCode() + ": " + vaildateUrl + secret);
+							+ e.getStatusCode() + ": " + validateUrl + secret);
 				}
 			} catch (Exception e) {
 				LOG.error(e.getMessage(), e);
+				throw new Error(e);
 			} finally {
 				http.getConnectionManager().shutdown();
 			}
@@ -221,13 +242,12 @@ public class K2UserDirectoryProvider implements UserDirectoryProvider {
 	}
 
 	public void init() {
-		vaildateUrl = ServerConfigurationService
-				.getString("login.k2.authentication.vaildateUrl");
-		LOG.info("vaildateUrl=" + vaildateUrl);
-		if (vaildateUrl == null || "".equals(vaildateUrl)) {
-			throw new IllegalStateException("Illegal vaildateUrl state!: "
-					+ vaildateUrl);
-		}
+		validateUrl = ServerConfigurationService.getString(CONFIG_VALIDATE_URL,
+				validateUrl);
+		principal = ServerConfigurationService.getString(CONFIG_PRINCIPAL,
+				principal);
+		hostname = ServerConfigurationService.getString(CONFIG_HOST_NAME,
+				hostname);
 	}
 
 	/**
