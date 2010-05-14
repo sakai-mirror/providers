@@ -19,9 +19,7 @@
 package org.sakaiproject.provider.user;
 
 import java.net.URI;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
@@ -99,15 +97,11 @@ public class K2UserDirectoryProvider implements UserDirectoryProvider {
 			// since I assume I am in a chain, I will be quiet about it
 			return false;
 		}
-		final List<Object> list = getPrincipalLoggedIntoK2(getHttpServletRequest());
-		final String principal = (String) list.get(0);
-		if (eid.equalsIgnoreCase(principal)) {
-			// do we need to modify the UserEdit with firstName, email, etc?
-			final JSONObject properties = ((JSONObject) list.get(1))
-					.getJSONObject("user").getJSONObject("properties");
-			edit.setFirstName(properties.getString("firstName"));
-			edit.setLastName(properties.getString("lastName"));
-			edit.setEmail(properties.getString("email"));
+		final AuthInfo authInfo = getPrincipalLoggedIntoK2(getHttpServletRequest());
+		if (eid.equalsIgnoreCase(authInfo.getPrincipal())) {
+			edit.setFirstName(authInfo.getFirstName());
+			edit.setLastName(authInfo.getLastName());
+			edit.setEmail(authInfo.getEmailAddress());
 			return true;
 		}
 		return false;
@@ -132,17 +126,12 @@ public class K2UserDirectoryProvider implements UserDirectoryProvider {
 		if (email == null) {
 			return false;
 		}
-		final List<Object> list = getPrincipalLoggedIntoK2(getHttpServletRequest());
-		final String eid = (String) list.get(0);
-		final JSONObject properties = ((JSONObject) list.get(1)).getJSONObject(
-				"user").getJSONObject("properties");
-		final String authorityEmail = properties.getString("email");
-		if (email.equalsIgnoreCase(authorityEmail)) {
-			// do we need to modify the UserEdit with firstName, email, etc?
-			edit.setEid(eid);
-			edit.setFirstName(properties.getString("firstName"));
-			edit.setLastName(properties.getString("lastName"));
-			edit.setEmail(authorityEmail);
+		final AuthInfo authInfo = getPrincipalLoggedIntoK2(getHttpServletRequest());
+		if (email.equalsIgnoreCase(authInfo.getEmailAddress())) {
+			edit.setEid(authInfo.getPrincipal());
+			edit.setFirstName(authInfo.getFirstName());
+			edit.setLastName(authInfo.getLastName());
+			edit.setEmail(authInfo.getEmailAddress());
 			return true;
 		}
 		return false;
@@ -171,14 +160,13 @@ public class K2UserDirectoryProvider implements UserDirectoryProvider {
 		return;
 	}
 
-	private List<Object> getPrincipalLoggedIntoK2(HttpServletRequest request) {
+	private AuthInfo getPrincipalLoggedIntoK2(HttpServletRequest request) {
 		LOG.debug("getPrincipalLoggedIntoK2(HttpServletRequest request)");
 		final Object cache = threadLocalManager.get(THREAD_LOCAL_CACHE_KEY);
-		if (cache != null && cache instanceof NakamuraUser) {
-			return ((NakamuraUser) cache).authnInfo;
+		if (cache != null && cache instanceof AuthInfo) {
+			return (AuthInfo) cache;
 		}
-		String eid = null;
-		JSONObject jsonObject = null;
+		AuthInfo authInfo = null;
 		final String secret = getSecret(request);
 		if (secret != null) {
 			final DefaultHttpClient http = new DefaultHttpClient();
@@ -193,13 +181,7 @@ public class K2UserDirectoryProvider implements UserDirectoryProvider {
 				final ResponseHandler<String> responseHandler = new BasicResponseHandler();
 				final String responseBody = http.execute(httpget,
 						responseHandler);
-				jsonObject = JSONObject.fromObject(responseBody);
-				final String p = jsonObject.getJSONObject("user").getString(
-						"principal");
-				if (p != null && !"".equals(p) && !ANONYMOUS.equals(p)) {
-					// only if not null and not "anonymous"
-					eid = p;
-				}
+				authInfo = new AuthInfo(responseBody);
 			} catch (HttpResponseException e) {
 				// usually a 404 error - could not find cookie / not valid
 				if (LOG.isDebugEnabled()) {
@@ -213,14 +195,11 @@ public class K2UserDirectoryProvider implements UserDirectoryProvider {
 				http.getConnectionManager().shutdown();
 			}
 		}
-		final List<Object> list = new ArrayList<Object>(2);
-		list.add(0, eid);
-		list.add(1, jsonObject);
 
 		// cache results in thread local
-		threadLocalManager.set(THREAD_LOCAL_CACHE_KEY, new NakamuraUser(list));
+		threadLocalManager.set(THREAD_LOCAL_CACHE_KEY, authInfo);
 
-		return list;
+		return authInfo;
 	}
 
 	private String getSecret(HttpServletRequest req) {
@@ -262,13 +241,53 @@ public class K2UserDirectoryProvider implements UserDirectoryProvider {
 	/**
 	 * Private class for storing cached results from Nakamura lookup. Use of a
 	 * private class will help prevent hijacking of the cache results.
-	 * 
 	 */
-	private class NakamuraUser {
-		private List<Object> authnInfo;
+	private static class AuthInfo {
+		private String principal;
+		private String firstName;
+		private String lastName;
+		private String emailAddress;
 
-		private NakamuraUser(List<Object> authnInfo) {
-			this.authnInfo = authnInfo;
+		private AuthInfo(String json) {
+			final JSONObject user = JSONObject.fromObject(json).getJSONObject(
+					"user");
+			final String p = user.getString("principal");
+			if (p != null && !"".equals(p) && !ANONYMOUS.equals(p)) {
+				principal = p;
+			}
+
+			final JSONObject properties = user.getJSONObject("properties");
+			firstName = properties.getString("firstName");
+			lastName = properties.getString("lastName");
+			emailAddress = properties.getString("email");
+		}
+
+		/**
+		 * @return the givenName
+		 */
+		private String getFirstName() {
+			return firstName;
+		}
+
+		/**
+		 * @return the familyName
+		 */
+		private String getLastName() {
+			return lastName;
+		}
+
+		/**
+		 * @return the emailAddress
+		 */
+		private String getEmailAddress() {
+			return emailAddress;
+		}
+
+		/**
+		 * @return the principal
+		 */
+		private String getPrincipal() {
+			return principal;
 		}
 	}
 }
