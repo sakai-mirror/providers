@@ -181,19 +181,20 @@ public class K2UserDirectoryProvider implements UserDirectoryProvider {
 		JSONObject jsonObject = null;
 		final String secret = getSecret(request);
 		if (secret != null) {
-			DefaultHttpClient http = new DefaultHttpClient();
+			final DefaultHttpClient http = new DefaultHttpClient();
 			try {
 				final URI uri = new URI(validateUrl + secret);
-				HttpGet httpget = new HttpGet(uri);
+				final HttpGet httpget = new HttpGet(uri);
 				// authenticate to Nakamura using x-sakai-token mechanism
 				final String token = XSakaiToken.createToken(hostname,
 						principal);
 				httpget.addHeader(XSakaiToken.X_SAKAI_TOKEN_HEADER, token);
 				//
-				ResponseHandler<String> responseHandler = new BasicResponseHandler();
-				String responseBody = http.execute(httpget, responseHandler);
+				final ResponseHandler<String> responseHandler = new BasicResponseHandler();
+				final String responseBody = http.execute(httpget,
+						responseHandler);
 				jsonObject = JSONObject.fromObject(responseBody);
-				String p = jsonObject.getJSONObject("user").getString(
+				final String p = jsonObject.getJSONObject("user").getString(
 						"principal");
 				if (p != null && !"".equals(p) && !ANONYMOUS.equals(p)) {
 					// only if not null and not "anonymous"
@@ -212,7 +213,7 @@ public class K2UserDirectoryProvider implements UserDirectoryProvider {
 				http.getConnectionManager().shutdown();
 			}
 		}
-		List<Object> list = new ArrayList<Object>(2);
+		final List<Object> list = new ArrayList<Object>(2);
 		list.add(0, eid);
 		list.add(1, jsonObject);
 
