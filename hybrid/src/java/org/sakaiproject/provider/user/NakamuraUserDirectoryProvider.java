@@ -42,9 +42,9 @@ import org.sakaiproject.util.XSakaiToken;
 /**
  *
  */
-public class K2UserDirectoryProvider implements UserDirectoryProvider {
+public class NakamuraUserDirectoryProvider implements UserDirectoryProvider {
 	private static final Log LOG = LogFactory
-			.getLog(K2UserDirectoryProvider.class);
+			.getLog(NakamuraUserDirectoryProvider.class);
 	/**
 	 * Key in the ThreadLocalManager for access to the current http request
 	 * object.
@@ -52,10 +52,10 @@ public class K2UserDirectoryProvider implements UserDirectoryProvider {
 	public final static String CURRENT_HTTP_REQUEST = "org.sakaiproject.util.RequestFilter.http_request";
 	private static final String COOKIE_NAME = "SAKAI-TRACKING";
 	private static final String ANONYMOUS = "anonymous";
-	private static final String THREAD_LOCAL_CACHE_KEY = K2UserDirectoryProvider.class
+	private static final String THREAD_LOCAL_CACHE_KEY = NakamuraUserDirectoryProvider.class
 			.getName()
 			+ ".cache";
-	public static final String CONFIG_PREFIX = "org.sakaiproject.provider.user.K2UserDirectoryProvider";
+	public static final String CONFIG_PREFIX = "org.sakaiproject.provider.user.NakamuraUserDirectoryProvider";
 	public static final String CONFIG_PRINCIPAL = CONFIG_PREFIX + ".principal";
 	public static final String CONFIG_HOST_NAME = CONFIG_PREFIX + ".hostname";
 	public static final String CONFIG_VALIDATE_URL = CONFIG_PREFIX

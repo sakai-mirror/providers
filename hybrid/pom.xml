@@ -10,9 +10,9 @@
     <version>2.8-SNAPSHOT</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
-  <name>sakai-k2hybrid-provider</name>
+  <name>sakai-hybrid-provider</name>
   <groupId>org.sakaiproject.provider</groupId>
-  <artifactId>sakai-k2hybrid-provider</artifactId>
+  <artifactId>sakai-hybrid-provider</artifactId>
   <organization>
     <name>Sakai Project</name>
     <url>http://sakaiproject.org/</url>
