@@ -73,11 +73,6 @@
         <version>2.7-SNAPSHOT</version>
 <!-- <scope>test</scope> removed to fix build - Chuck -->
       </dependency>
-      <dependency>
-        <groupId>org.sakaiproject.provider</groupId>
-        <artifactId>sakai-k2hybrid-provider</artifactId>
-        <version>2.7-SNAPSHOT</version>
-      </dependency>
     </dependencies>
   </dependencyManagement>
 </project>
