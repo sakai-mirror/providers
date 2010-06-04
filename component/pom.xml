@@ -80,7 +80,7 @@
 -->
 		<dependency>
 			<groupId>org.sakaiproject.provider</groupId>
-			<artifactId>sakai-k2hybrid-provider</artifactId>
+			<artifactId>sakai-hybrid-provider</artifactId>
 			<version>2.7-SNAPSHOT</version>
 		</dependency>
   </dependencies>

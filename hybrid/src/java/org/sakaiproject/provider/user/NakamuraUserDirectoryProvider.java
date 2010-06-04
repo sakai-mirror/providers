@@ -19,9 +19,7 @@
 package org.sakaiproject.provider.user;
 
 import java.net.URI;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
@@ -39,13 +37,14 @@ import org.sakaiproject.component.cover.ServerConfigurationService;
 import org.sakaiproject.thread_local.api.ThreadLocalManager;
 import org.sakaiproject.user.api.UserDirectoryProvider;
 import org.sakaiproject.user.api.UserEdit;
+import org.sakaiproject.util.XSakaiToken;
 
 /**
  *
  */
-public class K2UserDirectoryProvider implements UserDirectoryProvider {
+public class NakamuraUserDirectoryProvider implements UserDirectoryProvider {
 	private static final Log LOG = LogFactory
-			.getLog(K2UserDirectoryProvider.class);
+			.getLog(NakamuraUserDirectoryProvider.class);
 	/**
 	 * Key in the ThreadLocalManager for access to the current http request
 	 * object.
@@ -53,13 +52,31 @@ public class K2UserDirectoryProvider implements UserDirectoryProvider {
 	public final static String CURRENT_HTTP_REQUEST = "org.sakaiproject.util.RequestFilter.http_request";
 	private static final String COOKIE_NAME = "SAKAI-TRACKING";
 	private static final String ANONYMOUS = "anonymous";
-	private static final String THREAD_LOCAL_CACHE_KEY = K2UserDirectoryProvider.class
+	private static final String THREAD_LOCAL_CACHE_KEY = NakamuraUserDirectoryProvider.class
 			.getName()
 			+ ".cache";
+	public static final String CONFIG_PREFIX = "org.sakaiproject.provider.user.NakamuraUserDirectoryProvider";
+	public static final String CONFIG_PRINCIPAL = CONFIG_PREFIX + ".principal";
+	public static final String CONFIG_HOST_NAME = CONFIG_PREFIX + ".hostname";
+	public static final String CONFIG_VALIDATE_URL = CONFIG_PREFIX
+			+ ".validateUrl";
+
 	/**
-	 * The K2 RESTful service to validate authenticated users
+	 * The Nakamura RESTful service to validate authenticated users
 	 */
-	protected String vaildateUrl = null;
+	protected String validateUrl = "http://localhost/var/cluster/user.cookie.json?c=";
+
+	/**
+	 * The nakamura user that has permissions to GET
+	 * /var/cluster/user.cookie.json.
+	 */
+	protected String principal = "admin";
+
+	/**
+	 * The hostname we will use to lookup the sharedSecret for access to
+	 * validateUrl.
+	 */
+	protected String hostname = "localhost";
 
 	/**
 	 * Injected ThreadLocalManager
@@ -80,15 +97,11 @@ public class K2UserDirectoryProvider implements UserDirectoryProvider {
 			// since I assume I am in a chain, I will be quiet about it
 			return false;
 		}
-		final List<Object> list = getPrincipalLoggedIntoK2(getHttpServletRequest());
-		final String principal = (String) list.get(0);
-		if (eid.equalsIgnoreCase(principal)) {
-			// do we need to modify the UserEdit with firstName, email, etc?
-			final JSONObject properties = ((JSONObject) list.get(1))
-					.getJSONObject("user").getJSONObject("properties");
-			edit.setFirstName(properties.getString("firstName"));
-			edit.setLastName(properties.getString("lastName"));
-			edit.setEmail(properties.getString("email"));
+		final AuthInfo authInfo = getPrincipalLoggedIntoK2(getHttpServletRequest());
+		if (eid.equalsIgnoreCase(authInfo.getPrincipal())) {
+			edit.setFirstName(authInfo.getFirstName());
+			edit.setLastName(authInfo.getLastName());
+			edit.setEmail(authInfo.getEmailAddress());
 			return true;
 		}
 		return false;
@@ -113,17 +126,12 @@ public class K2UserDirectoryProvider implements UserDirectoryProvider {
 		if (email == null) {
 			return false;
 		}
-		final List<Object> list = getPrincipalLoggedIntoK2(getHttpServletRequest());
-		final String eid = (String) list.get(0);
-		final JSONObject properties = ((JSONObject) list.get(1)).getJSONObject(
-				"user").getJSONObject("properties");
-		final String authorityEmail = properties.getString("email");
-		if (email.equalsIgnoreCase(authorityEmail)) {
-			// do we need to modify the UserEdit with firstName, email, etc?
-			edit.setEid(eid);
-			edit.setFirstName(properties.getString("firstName"));
-			edit.setLastName(properties.getString("lastName"));
-			edit.setEmail(authorityEmail);
+		final AuthInfo authInfo = getPrincipalLoggedIntoK2(getHttpServletRequest());
+		if (email.equalsIgnoreCase(authInfo.getEmailAddress())) {
+			edit.setEid(authInfo.getPrincipal());
+			edit.setFirstName(authInfo.getFirstName());
+			edit.setLastName(authInfo.getLastName());
+			edit.setEmail(authInfo.getEmailAddress());
 			return true;
 		}
 		return false;
@@ -152,53 +160,46 @@ public class K2UserDirectoryProvider implements UserDirectoryProvider {
 		return;
 	}
 
-	private List<Object> getPrincipalLoggedIntoK2(HttpServletRequest request) {
+	private AuthInfo getPrincipalLoggedIntoK2(HttpServletRequest request) {
 		LOG.debug("getPrincipalLoggedIntoK2(HttpServletRequest request)");
 		final Object cache = threadLocalManager.get(THREAD_LOCAL_CACHE_KEY);
-		if (cache != null && cache instanceof NakamuraUser) {
-			return ((NakamuraUser) cache).authnInfo;
+		if (cache != null && cache instanceof AuthInfo) {
+			return (AuthInfo) cache;
 		}
-		String eid = null;
-		JSONObject jsonObject = null;
+		AuthInfo authInfo = null;
 		final String secret = getSecret(request);
 		if (secret != null) {
-			DefaultHttpClient http = new DefaultHttpClient();
-			// TODO Complete basic authentication to K2 service when enabled.
-			// http.getCredentialsProvider().setCredentials(
-			// new AuthScope("localhost", 443),
-			// new UsernamePasswordCredentials("username", "password"));
+			final DefaultHttpClient http = new DefaultHttpClient();
 			try {
-				URI uri = new URI(vaildateUrl + secret);
-				HttpGet httpget = new HttpGet(uri);
-				ResponseHandler<String> responseHandler = new BasicResponseHandler();
-				String responseBody = http.execute(httpget, responseHandler);
-				jsonObject = JSONObject.fromObject(responseBody);
-				String p = jsonObject.getJSONObject("user").getString(
-						"principal");
-				if (p != null && !"".equals(p) && !ANONYMOUS.equals(p)) {
-					// only if not null and not "anonymous"
-					eid = p;
-				}
+				final URI uri = new URI(validateUrl + secret);
+				final HttpGet httpget = new HttpGet(uri);
+				// authenticate to Nakamura using x-sakai-token mechanism
+				final String token = XSakaiToken.createToken(hostname,
+						principal);
+				httpget.addHeader(XSakaiToken.X_SAKAI_TOKEN_HEADER, token);
+				//
+				final ResponseHandler<String> responseHandler = new BasicResponseHandler();
+				final String responseBody = http.execute(httpget,
+						responseHandler);
+				authInfo = new AuthInfo(responseBody);
 			} catch (HttpResponseException e) {
 				// usually a 404 error - could not find cookie / not valid
 				if (LOG.isDebugEnabled()) {
 					LOG.debug("HttpResponseException: " + e.getMessage() + ": "
-							+ e.getStatusCode() + ": " + vaildateUrl + secret);
+							+ e.getStatusCode() + ": " + validateUrl + secret);
 				}
 			} catch (Exception e) {
 				LOG.error(e.getMessage(), e);
+				throw new Error(e);
 			} finally {
 				http.getConnectionManager().shutdown();
 			}
 		}
-		List<Object> list = new ArrayList<Object>(2);
-		list.add(0, eid);
-		list.add(1, jsonObject);
 
 		// cache results in thread local
-		threadLocalManager.set(THREAD_LOCAL_CACHE_KEY, new NakamuraUser(list));
+		threadLocalManager.set(THREAD_LOCAL_CACHE_KEY, authInfo);
 
-		return list;
+		return authInfo;
 	}
 
 	private String getSecret(HttpServletRequest req) {
@@ -221,13 +222,12 @@ public class K2UserDirectoryProvider implements UserDirectoryProvider {
 	}
 
 	public void init() {
-		vaildateUrl = ServerConfigurationService
-				.getString("login.k2.authentication.vaildateUrl");
-		LOG.info("vaildateUrl=" + vaildateUrl);
-		if (vaildateUrl == null || "".equals(vaildateUrl)) {
-			throw new IllegalStateException("Illegal vaildateUrl state!: "
-					+ vaildateUrl);
-		}
+		validateUrl = ServerConfigurationService.getString(CONFIG_VALIDATE_URL,
+				validateUrl);
+		principal = ServerConfigurationService.getString(CONFIG_PRINCIPAL,
+				principal);
+		hostname = ServerConfigurationService.getString(CONFIG_HOST_NAME,
+				hostname);
 	}
 
 	/**
@@ -241,13 +241,53 @@ public class K2UserDirectoryProvider implements UserDirectoryProvider {
 	/**
 	 * Private class for storing cached results from Nakamura lookup. Use of a
 	 * private class will help prevent hijacking of the cache results.
-	 * 
 	 */
-	private class NakamuraUser {
-		private List<Object> authnInfo;
+	private static class AuthInfo {
+		private String principal;
+		private String firstName;
+		private String lastName;
+		private String emailAddress;
 
-		private NakamuraUser(List<Object> authnInfo) {
-			this.authnInfo = authnInfo;
+		private AuthInfo(String json) {
+			final JSONObject user = JSONObject.fromObject(json).getJSONObject(
+					"user");
+			final String p = user.getString("principal");
+			if (p != null && !"".equals(p) && !ANONYMOUS.equals(p)) {
+				principal = p;
+			}
+
+			final JSONObject properties = user.getJSONObject("properties");
+			firstName = properties.getString("firstName");
+			lastName = properties.getString("lastName");
+			emailAddress = properties.getString("email");
+		}
+
+		/**
+		 * @return the givenName
+		 */
+		private String getFirstName() {
+			return firstName;
+		}
+
+		/**
+		 * @return the familyName
+		 */
+		private String getLastName() {
+			return lastName;
+		}
+
+		/**
+		 * @return the emailAddress
+		 */
+		private String getEmailAddress() {
+			return emailAddress;
+		}
+
+		/**
+		 * @return the principal
+		 */
+		private String getPrincipal() {
+			return principal;
 		}
 	}
 }
