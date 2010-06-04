@@ -242,7 +242,7 @@ public class NakamuraUserDirectoryProvider implements UserDirectoryProvider {
 	 * Private class for storing cached results from Nakamura lookup. Use of a
 	 * private class will help prevent hijacking of the cache results.
 	 */
-	private static class AuthInfo {
+	final static class AuthInfo {
 		private String principal;
 		private String firstName;
 		private String lastName;
@@ -265,28 +265,28 @@ public class NakamuraUserDirectoryProvider implements UserDirectoryProvider {
 		/**
 		 * @return the givenName
 		 */
-		private String getFirstName() {
+		String getFirstName() {
 			return firstName;
 		}
 
 		/**
 		 * @return the familyName
 		 */
-		private String getLastName() {
+		String getLastName() {
 			return lastName;
 		}
 
 		/**
 		 * @return the emailAddress
 		 */
-		private String getEmailAddress() {
+		String getEmailAddress() {
 			return emailAddress;
 		}
 
 		/**
 		 * @return the principal
 		 */
-		private String getPrincipal() {
+		String getPrincipal() {
 			return principal;
 		}
 	}
