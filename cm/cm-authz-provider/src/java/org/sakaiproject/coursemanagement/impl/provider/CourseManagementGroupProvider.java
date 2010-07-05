@@ -30,6 +30,7 @@ import org.apache.commons.logging.LogFactory;
 import org.sakaiproject.coursemanagement.api.CourseManagementService;
 import org.sakaiproject.coursemanagement.api.Section;
 import org.sakaiproject.authz.api.GroupProvider;
+import org.sakaiproject.coursemanagement.api.exception.IdNotFoundException;
 
 /**
  * A Sakai GroupProvider that utilizes the CourseManagementService and the
@@ -82,7 +83,13 @@ public class CourseManagementGroupProvider implements GroupProvider {
 
 			for(int i=0; i < sectionEids.length; i++) {
 				String sectionEid = sectionEids[i];
-				Section section = cmService.getSection(sectionEid);
+				Section section;
+				try {
+					section = cmService.getSection(sectionEid);
+				} catch (IdNotFoundException e) {
+					if (log.isWarnEnabled()) log.warn("Unable to find CM section " + sectionEid);
+					continue;
+				}
 				if(log.isDebugEnabled()) log.debug("Looking for roles in section " + sectionEid);
 			
 				Map<String, String> rrUserRoleMap = rr.getUserRoles(cmService, section);
