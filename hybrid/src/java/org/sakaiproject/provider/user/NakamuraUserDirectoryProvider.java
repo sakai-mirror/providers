@@ -98,11 +98,13 @@ public class NakamuraUserDirectoryProvider implements UserDirectoryProvider {
 			return false;
 		}
 		final AuthInfo authInfo = getPrincipalLoggedIntoK2(getHttpServletRequest());
-		if (eid.equalsIgnoreCase(authInfo.getPrincipal())) {
-			edit.setFirstName(authInfo.getFirstName());
-			edit.setLastName(authInfo.getLastName());
-			edit.setEmail(authInfo.getEmailAddress());
-			return true;
+		if (authInfo != null) {
+			if (eid.equalsIgnoreCase(authInfo.getPrincipal())) {
+				edit.setFirstName(authInfo.getFirstName());
+				edit.setLastName(authInfo.getLastName());
+				edit.setEmail(authInfo.getEmailAddress());
+				return true;
+			}
 		}
 		return false;
 	}
@@ -127,12 +129,14 @@ public class NakamuraUserDirectoryProvider implements UserDirectoryProvider {
 			return false;
 		}
 		final AuthInfo authInfo = getPrincipalLoggedIntoK2(getHttpServletRequest());
-		if (email.equalsIgnoreCase(authInfo.getEmailAddress())) {
-			edit.setEid(authInfo.getPrincipal());
-			edit.setFirstName(authInfo.getFirstName());
-			edit.setLastName(authInfo.getLastName());
-			edit.setEmail(authInfo.getEmailAddress());
-			return true;
+		if (authInfo != null) {
+			if (email.equalsIgnoreCase(authInfo.getEmailAddress())) {
+				edit.setEid(authInfo.getPrincipal());
+				edit.setFirstName(authInfo.getFirstName());
+				edit.setLastName(authInfo.getLastName());
+				edit.setEmail(authInfo.getEmailAddress());
+				return true;
+			}
 		}
 		return false;
 	}
@@ -204,9 +208,12 @@ public class NakamuraUserDirectoryProvider implements UserDirectoryProvider {
 
 	private String getSecret(HttpServletRequest req) {
 		String secret = null;
-		for (Cookie cookie : req.getCookies()) {
-			if (COOKIE_NAME.equals(cookie.getName())) {
-				secret = cookie.getValue();
+		final Cookie[] cookies = req.getCookies();
+		if (cookies != null) {
+			for (Cookie cookie : cookies) {
+				if (COOKIE_NAME.equals(cookie.getName())) {
+					secret = cookie.getValue();
+				}
 			}
 		}
 		return secret;
