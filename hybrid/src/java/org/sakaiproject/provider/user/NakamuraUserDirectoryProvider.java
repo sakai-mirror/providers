@@ -113,6 +113,9 @@ public class NakamuraUserDirectoryProvider implements UserDirectoryProvider {
 	 * @see org.sakaiproject.user.api.UserDirectoryProvider#authenticateWithProviderFirst(java.lang.String)
 	 */
 	public boolean authenticateWithProviderFirst(String eid) {
+		if (LOG.isDebugEnabled()) {
+			LOG.debug("authenticateWithProviderFirst(String " + eid + ")");
+		}
 		// What is the best default?
 		return false;
 	}
@@ -168,6 +171,7 @@ public class NakamuraUserDirectoryProvider implements UserDirectoryProvider {
 		LOG.debug("getPrincipalLoggedIntoK2(HttpServletRequest request)");
 		final Object cache = threadLocalManager.get(THREAD_LOCAL_CACHE_KEY);
 		if (cache != null && cache instanceof AuthInfo) {
+			LOG.debug("cache hit!");
 			return (AuthInfo) cache;
 		}
 		AuthInfo authInfo = null;
@@ -207,6 +211,7 @@ public class NakamuraUserDirectoryProvider implements UserDirectoryProvider {
 	}
 
 	private String getSecret(HttpServletRequest req) {
+		LOG.debug("getSecret(HttpServletRequest req)");
 		String secret = null;
 		final Cookie[] cookies = req.getCookies();
 		if (cookies != null) {
@@ -220,6 +225,7 @@ public class NakamuraUserDirectoryProvider implements UserDirectoryProvider {
 	}
 
 	private HttpServletRequest getHttpServletRequest() {
+		LOG.debug("getHttpServletRequest()");
 		final HttpServletRequest request = (HttpServletRequest) threadLocalManager
 				.get(CURRENT_HTTP_REQUEST);
 		if (request == null) {
@@ -229,6 +235,7 @@ public class NakamuraUserDirectoryProvider implements UserDirectoryProvider {
 	}
 
 	public void init() {
+		LOG.debug("init()");
 		validateUrl = ServerConfigurationService.getString(CONFIG_VALIDATE_URL,
 				validateUrl);
 		principal = ServerConfigurationService.getString(CONFIG_PRINCIPAL,
@@ -250,12 +257,17 @@ public class NakamuraUserDirectoryProvider implements UserDirectoryProvider {
 	 * private class will help prevent hijacking of the cache results.
 	 */
 	final static class AuthInfo {
+		private static final Log AILOG = LogFactory.getLog(AuthInfo.class);
+
 		private String principal;
 		private String firstName;
 		private String lastName;
 		private String emailAddress;
 
 		private AuthInfo(String json) {
+			if (AILOG.isDebugEnabled()) {
+				AILOG.debug("new AuthInfo(String " + json + ")");
+			}
 			final JSONObject user = JSONObject.fromObject(json).getJSONObject(
 					"user");
 			final String p = user.getString("principal");
