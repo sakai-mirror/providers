@@ -64,7 +64,7 @@
     <!-- TODO bind to release version when it is ready 0.1? -->
     <dependency>
       <groupId>org.sakaiproject.hybrid</groupId>
-      <artifactId>hybrid</artifactId>
+      <artifactId>sakai-hybrid-util</artifactId>
       <version>1.0-SNAPSHOT</version>
     </dependency>
     <dependency>
