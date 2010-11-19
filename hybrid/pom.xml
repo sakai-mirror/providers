@@ -21,6 +21,7 @@
   <packaging>jar</packaging>
   <properties>
     <deploy.target/>
+    <maven.test.redirectTestOutputToFile>true</maven.test.redirectTestOutputToFile>
   </properties>
   <dependencies>
     <dependency>
@@ -45,26 +46,30 @@
       <artifactId>servlet-api</artifactId>
     </dependency>
     <dependency>
-    	<groupId>net.sf.json-lib</groupId>
-    	<artifactId>json-lib</artifactId>
-    	<version>2.3</version>
-    	<type>jar</type>
-    	<classifier>jdk15</classifier>
-    </dependency>
-    <dependency>
-    	<groupId>org.sakaiproject</groupId>
-    	<artifactId>sakai-portal-impl</artifactId>
-    	<version>2.8-SNAPSHOT</version>
-    </dependency>
-    <dependency>
-    	<groupId>org.apache.httpcomponents</groupId>
-    	<artifactId>httpclient</artifactId>
-    	<version>4.0.1</version>
-    </dependency>
-    <dependency>
       <groupId>org.sakaiproject.hybrid</groupId>
       <artifactId>sakai-hybrid-util</artifactId>
       <version>${sakai.hybrid.version}</version>
+    </dependency>
+    <dependency>
+    	<groupId>junit</groupId>
+    	<artifactId>junit</artifactId>
+    	<version>4.8.2</version>
+    	<type>jar</type>
+    	<scope>test</scope>
+    </dependency>
+    <dependency>
+    	<groupId>org.mockito</groupId>
+    	<artifactId>mockito-all</artifactId>
+    	<version>1.8.5</version>
+    	<type>jar</type>
+    	<scope>test</scope>
+    </dependency>
+    <dependency>
+    	<groupId>log4j</groupId>
+    	<artifactId>log4j</artifactId>
+    	<version>1.2.16</version>
+    	<type>jar</type>
+    	<scope>test</scope>
     </dependency>
   </dependencies>
   <build>
