@@ -183,6 +183,7 @@
 				</property>
 			</bean>
 		</property -->
+		<property name="searchAliases"><value>false</value></property>
 		
 	</bean>
 			

@@ -69,6 +69,8 @@ public class JLDAPDirectoryProvider implements UserDirectoryProvider, LdapConnec
 	/** Default referral following behavior */
 	public static final boolean DEFAULT_IS_FOLLOW_REFERRALS = false;
 	
+	public static final boolean DEFAULT_IS_SEARCH_ALIASES = false;
+
 	/** Default search scope for filters executed by 
 	 * {@link #searchDirectory(String, LDAPConnection, LdapEntryMapper, String[], String, int)}
 	 */
@@ -134,6 +136,8 @@ public class JLDAPDirectoryProvider implements UserDirectoryProvider, LdapConnec
 
 	/** LDAP referral following behavior. Defaults to {@link #DEFAULT_IS_FOLLOW_REFERRALS} */
 	private boolean followReferrals = DEFAULT_IS_FOLLOW_REFERRALS;
+
+	private boolean searchAliases = DEFAULT_IS_SEARCH_ALIASES;
 
 	/** 
 	 * Default timeout for operations in milliseconds. Defaults
@@ -920,7 +924,12 @@ public class JLDAPDirectoryProvider implements UserDirectoryProvider, LdapConnec
 
 			// TODO search constraints should be configurable in their entirety
 			LDAPSearchConstraints constraints = new LDAPSearchConstraints();
-			constraints.setDereference(LDAPSearchConstraints.DEREF_ALWAYS);
+			if (isSearchAliases()) { 
+				constraints.setDereference(LDAPSearchConstraints.DEREF_ALWAYS);
+			} else {
+				constraints.setDereference(LDAPSearchConstraints.DEREF_NEVER);
+			}
+
 			constraints.setTimeLimit(operationTimeout);
 			constraints.setReferralFollowing(followReferrals); // TODO: Do we want to make an explicit set optional?
 			constraints.setBatchSize(0);
@@ -1607,6 +1616,22 @@ public class JLDAPDirectoryProvider implements UserDirectoryProvider, LdapConnec
 
 	public void setMemoryService(MemoryService memoryService) {
 		this.memoryService = memoryService;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public boolean isSearchAliases()
+	{
+		return searchAliases;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public void setSearchAliases(boolean searchAliases)
+	{
+		this.searchAliases = searchAliases;
 	}
 
 }
