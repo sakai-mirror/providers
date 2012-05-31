@@ -1337,6 +1337,8 @@ public class JLDAPDirectoryProvider implements UserDirectoryProvider, LdapConnec
 	public void setCacheTTL(long timeMs)
 	{
 		cacheTtl = timeMs;
+		M_log.warn("JLDAP cacheTTL has no effect, see SAK-21110. Set cache in sakai.properties: " + 
+			"memory.edu.amc.sakai.user.JLDAPDirectoryProvider.userCache=timeToLiveSeconds=3600,timeToIdleSeconds=0,maxElementsInMemory=20000"); 
 	}
 
 	/**
