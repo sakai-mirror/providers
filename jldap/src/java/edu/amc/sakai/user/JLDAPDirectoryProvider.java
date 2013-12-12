@@ -233,7 +233,7 @@ public class JLDAPDirectoryProvider implements UserDirectoryProvider, LdapConnec
 	 * Ensures initialization of delegate {@link LdapConnectionManager}
 	 * and {@link LdapAttributeMapper}
 	 * 
-	 * @see #initConnectionManager()
+	 * @see #initLdapConnectionManager()
 	 * @see #initLdapAttributeMapper()
 	 */
 	public void init()
@@ -243,6 +243,13 @@ public class JLDAPDirectoryProvider implements UserDirectoryProvider, LdapConnec
 			M_log.debug("init()");
 		}
 		userCache = memoryService.newCache(getClass().getName()+".userCache");
+		// We don't want to allow people to break their config by setting the batch size to be more than the
+		// maxResultsSize.
+		if (batchSize > maxResultSize) {
+			M_log.warn("batchSize is larger than maxResultSize, batchSize has been reduced from: "+ batchSize +
+					" to: "+ maxResultSize);
+			batchSize = maxResultSize;
+		}
 
 		initLdapConnectionManager();
 		initLdapAttributeMapper();
