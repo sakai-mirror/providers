@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd">
 
 <beans>
@@ -146,12 +147,19 @@
 			<value>10</value>
 		</property -->
 
-		<!-- Optional. Maximum number of users to search for
-		     Defaults to DEFAULT_MAX_OBJECTS_TO_QUERY = 200
-		<property name="maxObjectsToQueryFor">
+		<!-- Optional. Size of batch when loading multiple users at once.
+		     Defaults to DEFAULT_BATCH_SIZE = 200
+		<property name="batchSize">
 		  <value>200</value>
 		</property>-->
-		
+
+		<!-- Optional. Maximum number of users to search for. This allows you to limit the
+		     maximum number of results the LDAP client will process.
+		     Defaults to DEFAULT_MAX_RESULT_SIZE = 1000
+		<property name="maxResultSize">
+		  <value>1000</value>
+		</property>-->
+
 		<!-- Optional. Defaults to an instance of 
 		edu.amc.sakai.user.SimpleLdapAttributeMapper -->
 		<property name="ldapAttributeMapper">
@@ -199,25 +207,25 @@
     (the default LdapAttributeMapper implementation). -->
 	<bean id="edu.amc.sakai.user.LdapAttributeMapper"
 			class="edu.amc.sakai.user.SimpleLdapAttributeMapper"
-			init-method="init"
-			singleton="true">
-			
+		  init-method="init"
+		  singleton="true">
+
 		<!-- A typical set of attribute mappings. Keys are logical
 		names expected by the application. Values are physical LDAP
 		attribute names. If not specified or empty, defaults to
 		AttributeMappingConstants.DEFAULT_ATTR_MAPPINGS. -->
 		<!-- property name="attributeMappings">
 			<map>
-				<entry key="login"><value>cn</value></entry>         
-				<entry key="firstName"><value>givenName</value></entry> 
+				<entry key="login"><value>cn</value></entry>
+				<entry key="firstName"><value>givenName</value></entry>
 				<entry key="preferredFirstName"><value>preferredName</value></entry>
-				<entry key="lastName"><value>sn</value></entry> 
-				<entry key="email"><value>email</value></entry>  
-				<entry key="groupMembership"><value>groupMembership</value></entry>   
-				<entry key="jpegPhoto"><value>jpegPhoto</value></entry>   
+				<entry key="lastName"><value>sn</value></entry>
+				<entry key="email"><value>email</value></entry>
+				<entry key="groupMembership"><value>groupMembership</value></entry>
+				<entry key="jpegPhoto"><value>jpegPhoto</value></entry>
 			</map>
 		</property -->
-		
+
 		<!-- Several options for calculating Sakai user types based
 		on LDAP attributes. Defaults to an instance of EmptyStringUserTypeMapper -->
 		<property name="userTypeMapper">
@@ -227,7 +235,7 @@
 			<!-- ref bean="edu.amc.sakai.user.EntryContainerRdnToUserTypeMapper" /-->
 			<!-- ref bean="edu.amc.sakai.user.StringUserTypeMapper" /-->
 		</property>
-		
+
 	</bean>
 	
 	

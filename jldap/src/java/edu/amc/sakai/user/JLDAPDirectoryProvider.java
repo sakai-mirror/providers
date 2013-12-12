@@ -85,9 +85,12 @@ public class JLDAPDirectoryProvider implements UserDirectoryProvider, LdapConnec
 
 	/** Default LDAP maximum number of connections in the pool */
 	public static final int DEFAULT_POOL_MAX_CONNS = 10;
-	
+
+	/** Default LDAP maximum number of objects in a result */
+	public static final int DEFAULT_MAX_RESULT_SIZE = 1000;
+
 	/** Default LDAP maximum number of objects to query for */
-	public static final int DEFAULT_MAX_OBJECTS_TO_QUERY = 200;
+	public static final int DEFAULT_BATCH_SIZE = 200;
 
 	public static final boolean DEFAULT_CASE_SENSITIVE_CACHE_KEYS = false;
 	
@@ -130,9 +133,12 @@ public class JLDAPDirectoryProvider implements UserDirectoryProvider, LdapConnec
 
 	/** Maximum number of physical connections in the pool */
 	private int poolMaxConns = DEFAULT_POOL_MAX_CONNS;
-	
+
 	/** Maximum number of results from one LDAP query */
-	private int maxObjectsToQueryFor = DEFAULT_MAX_OBJECTS_TO_QUERY;
+	private int maxResultSize = DEFAULT_MAX_RESULT_SIZE;
+
+	/** The size of each batch to load from LDAP when loading multiple users. */
+	private int batchSize = DEFAULT_BATCH_SIZE;
 
 	/** Socket factory for secure connections. Only relevant if
 	 * {@link #secureConnection} is true. Defaults to a new instance
@@ -622,10 +628,11 @@ public class JLDAPDirectoryProvider implements UserDirectoryProvider, LdapConnec
 		boolean abortiveSearch = false;
 		int maxQuerySize = getMaxObjectsToQueryFor();
 		UserEdit userEdit = null;
-		
+		// This hold batches of users to search for in LDAP.
 		HashMap<String, UserEdit> usersToSearchInLDAP = new HashMap<String, UserEdit>();
 		List<UserEdit> usersToRemove = new ArrayList<UserEdit>();
 		try {
+			// This is how many people we have in the usersToSearchInLDAP map.
 			int cnt = 0;
 			for ( Iterator<UserEdit> userEdits = users.iterator(); userEdits.hasNext(); ) {
 				userEdit = (UserEdit) userEdits.next();
@@ -654,7 +661,7 @@ public class JLDAPDirectoryProvider implements UserDirectoryProvider, LdapConnec
 					}
 					
 					String filter = ldapAttributeMapper.getManyUsersInOneSearch(usersToSearchInLDAP.keySet());
-					List<LdapUserData> ldapUsers = searchDirectory(filter, null, null, null, null, 0);
+					List<LdapUserData> ldapUsers = searchDirectory(filter, null, null, null, null, maxQuerySize);
 				
 					for (LdapUserData ldapUserData : ldapUsers) {
 						String ldapEid = ldapUserData.getEid();
@@ -927,7 +934,7 @@ public class JLDAPDirectoryProvider implements UserDirectoryProvider, LdapConnec
 	 * @throws LDAPException if thrown by the search
 	 * @throws RuntimeExction wrapping any non-{@link LDAPException} {@link Exception}
 	 */
-	protected List<LdapUserData> searchDirectory(String filter, 
+	protected List<LdapUserData> searchDirectory(String filter,
 			LDAPConnection conn,
 			LdapEntryMapper mapper,
 			String[] searchResultPhysicalAttributeNames,
@@ -971,10 +978,9 @@ public class JLDAPDirectoryProvider implements UserDirectoryProvider, LdapConnec
 
 			constraints.setTimeLimit(operationTimeout);
 			constraints.setReferralFollowing(followReferrals); // TODO: Do we want to make an explicit set optional?
+			// This is because we don't process the results until they are all in.
 			constraints.setBatchSize(0);
-			if ( maxResults > 0 ) {
-				constraints.setMaxResults(maxResults);
-			}
+			constraints.setMaxResults(maxResults);
 
 			if ( M_log.isDebugEnabled() ) {
 				M_log.debug("searchDirectory(): [baseDN = " + 
@@ -1007,7 +1013,7 @@ public class JLDAPDirectoryProvider implements UserDirectoryProvider, LdapConnec
 			return mappedResults;
 
 		} catch (LDAPException e) {
-			throw e;
+				throw e;
 		} catch ( Exception e ) {
 			throw new RuntimeException("searchDirectory(): RuntimeException while executing search [baseDN = " + 
 					searchBaseDn + "][filter = " + filter + 
@@ -1423,14 +1429,44 @@ public class JLDAPDirectoryProvider implements UserDirectoryProvider, LdapConnec
 	 * {@inheritDoc}
 	 */
 	public int getMaxObjectsToQueryFor() {
-		return maxObjectsToQueryFor;
+		return getBatchSize();
 	}
 	
 	/**
 	 * {@inheritDoc}
 	 */
 	public void setMaxObjectsToQueryFor (int maxObjectsToQueryFor) {
-		this.maxObjectsToQueryFor = maxObjectsToQueryFor;
+		M_log.info("maxObjectToQueryFor is deprecated please use " +
+				"batchSize@org.sakaiproject.user.api.UserDirectoryProvider instead");
+		setBatchSize(maxObjectsToQueryFor);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public int getBatchSize() {
+		return batchSize;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public void setBatchSize(int batchSize) {
+		this.batchSize = batchSize;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public int getMaxResultSize() {
+		return maxResultSize;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public void setMaxResultSize(int maxResultSize) {
+		this.maxResultSize = maxResultSize;
 	}
 
 	/**
@@ -1603,7 +1639,7 @@ public class JLDAPDirectoryProvider implements UserDirectoryProvider, LdapConnec
 	
 	/**
 	 * Access the configured search scope for all filters executed by
-	 * {@link #searchDirectory(String, LDAPConnection, LdapEntryMapper, String[], String, int)}. 
+	 * {@link #searchDirectory(String, LDAPConnection, LdapEntryMapper, String[], String, int)}.
 	 * int value corresponds to a constant in {@link LDAPConnection}:
 	 * SCOPE_BASE = 0, SCOPE_ONE = 1, SCOPE_SUB = 2. Defaults to
 	 * {@link #DEFAULT_SEARCH_SCOPE}.
@@ -1688,7 +1724,7 @@ public class JLDAPDirectoryProvider implements UserDirectoryProvider, LdapConnec
 		
 		try {
 			//no limit to the number of search results, use the LDAP server's settings.
-			List<LdapUserData> ldapUsers = searchDirectory(filter, null, null, null, null, 0);
+			List<LdapUserData> ldapUsers = searchDirectory(filter, null, null, null, null, maxResultSize);
 			
 			for(LdapUserData ldapUserData: ldapUsers) {
 				
@@ -1723,7 +1759,7 @@ public class JLDAPDirectoryProvider implements UserDirectoryProvider, LdapConnec
 		String filter = ldapAttributeMapper.getFindUserByEmailFilter(email);
 		List<User> users = new ArrayList<User>();
 		try {
-			List<LdapUserData> ldapUsers = searchDirectory(filter, null, null, null, null, 0);
+			List<LdapUserData> ldapUsers = searchDirectory(filter, null, null, null, null, maxResultSize);
 
 			for(LdapUserData ldapUserData: ldapUsers) {
 
