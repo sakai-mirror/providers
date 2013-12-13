@@ -41,7 +41,8 @@ public interface RoleResolver {
 	 * @param cmService The CM service impl.  We pass this in rather than injecting
 	 * it into every RoleResolver
 	 * 
-	 * @return The user's role, or null if the user has no role in this CM object
+	 * @return A map of users roles with the user ID as the key and the role as the value.
+	 * Should never return <code>null</code>, but an empty Map is ok.
 	 */
 	public Map<String, String> getUserRoles(CourseManagementService cmService, Section section);
 
