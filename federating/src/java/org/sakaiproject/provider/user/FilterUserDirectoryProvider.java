@@ -573,7 +573,13 @@ public class FilterUserDirectoryProvider implements UserDirectoryProvider, Exter
 				m_logger.debug("searchExternalUsers() criteria=" + criteria);
 			}
 			
-			users.addAll(extSearchUDP.searchExternalUsers(criteria, first, last, factory));
+			List<UserEdit> searchExternalUsers = extSearchUDP.searchExternalUsers(criteria, first, last, factory);
+			if (searchExternalUsers != null) {
+				users.addAll(searchExternalUsers);
+			} else {
+				// When something goes wrong with the search we want to pass this back up the stack.
+				return null;
+			}
 		}
 		
 		if ( nextProvider instanceof ExternalUserSearchUDP) {
@@ -583,7 +589,13 @@ public class FilterUserDirectoryProvider implements UserDirectoryProvider, Exter
 				m_logger.debug("nextProvider searchExternalUsers() criteria=" + criteria);
 			}
 			
-			users.addAll(extSearchUDP.searchExternalUsers(criteria, first, last, factory));
+			List<UserEdit> searchExternalUsers = extSearchUDP.searchExternalUsers(criteria, first, last, factory);
+			if (searchExternalUsers != null) {
+				users.addAll(searchExternalUsers);
+			} else {
+				// When something goes wrong with the search we want to pass this back up the stack.
+				return null;
+			}
 		}
 
 		return users;
